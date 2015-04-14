@@ -19,7 +19,7 @@ public class TestMongoDBConfig extends AbstractMongoConfiguration {
 
 	@Override
 	protected String getDatabaseName() {
-		return "lottotest";
+		return "lotto";
 	}
 	
 	@Bean
