@@ -32,7 +32,7 @@ public class OZLottoServiceImpl implements OZLottoService {
 	private LottoDAO lottoDAO;
 
 	private static Logger log = LoggerFactory.getLogger(OZLottoServiceImpl.class);
-	private static final int SAMPLE = 15;
+	private static final int SAMPLE = 20;
 
 	public void uploadResults(InputStream is) throws Exception {
 		BufferedReader reader = null;
