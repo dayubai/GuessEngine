@@ -8,20 +8,27 @@
 	<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 </head>
 <body>
-	
-    <input type="text" name="games" value="18"/>&nbsp;<input type="button"value="New Ticket"/>
+	<form action="/ozLotto/ticket/new" method="post">
+    <input type="text" name="draws" value=""/>&nbsp;<input type="text" name="games" value="18"/>&nbsp;<input type="submit"value="New Ticket"/>
+    </form>
+    
+    <h2>Draw Result ${result.drawNumber}</h2>
+    <span>Number:</span>&nbsp;<span>${result.winningNumbers}</span><br/><span>Supplementaries:</span><span>${result.supplementaryNumbers}</span>
+    
+    
     
     <h2>Ticket History</h2>
-    <div>
- <c:if test="${not empty tickets}">
-        <c:forEach var="ticket" items="${tickets}">
-             <span>Ticket: ${ticket.draw}</span>
-             <c:forEach var="result" items="${ticket.results}">
-             <div>${result.numbers}</div>
-             </c:forEach>
-        </c:forEach>
-    </div>
-    </c:if>   
+    
+    <table>
+		<c:if test="${not empty tickets}">
+			<c:forEach var="ticket" items="${tickets}">
+				<tr>
+					<td>Ticket: <a href="/saturdayLotto/ticket/${ticket.id}">${ticket.draw}</a></td>
+				</tr>
+			</c:forEach>
+		</c:if>
+	</table>
+    
     <script type="text/javascript">
     	
     </script>

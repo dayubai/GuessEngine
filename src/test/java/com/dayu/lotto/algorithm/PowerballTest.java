@@ -4,23 +4,31 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.dayu.lotto.TestAppConfig;
+import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.PowerBallResult;
 import com.dayu.lotto.entity.PowerBallTicket;
+import com.dayu.lotto.entity.SaturdayLottoResult;
+import com.dayu.lotto.entity.SaturdayLottoTicket;
 import com.dayu.lotto.service.PowerBallService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -31,6 +39,8 @@ public class PowerballTest {
 	
 	@Autowired
 	private PowerBallService powerBallService;
+	
+	private static Logger log = LoggerFactory.getLogger(PowerballTest.class);
 	
 	@Test
 	public void testPowerBallUploadResult()
@@ -95,4 +105,53 @@ public class PowerballTest {
 			powerBallService.checkTicket(powerBallTicket);
 		}
 	}
+	
+	/*@Test
+	public void testFindTopPrize()
+	{
+		SaturdayLottoResult lottoResult = saturdayLottoService.findResultByDraw(3449);
+		
+		int drawToTest = 3455;
+		SaturdayLottoResult lottoResult = new SaturdayLottoResult();
+		lottoResult.setDrawDate(new Date());
+		lottoResult.setDrawNumber(3455);
+		lottoResult.setWinningNumbers(Arrays.asList(new Integer[] {24,37,44,14,2,40}));
+		lottoResult.setSupplementaryNumbers(Arrays.asList(new Integer[] {33,18}));
+		lottoResult.setDivisions(Arrays.asList(new Division[] {new Division(1, BigDecimal.valueOf(1000000))}));
+		int i = 0;
+		
+		
+		while(true)
+		{
+			if (mongoTemplate.collectionExists(SaturdayLottoTicket.class))
+				mongoTemplate.dropCollection(SaturdayLottoTicket.class);
+
+			saturdayLottoService.draw(new WeightedSelector(), drawToTest, 50);
+		
+			i += 50;
+			
+			for (SaturdayLottoTicket saturdayLottoTicket : saturdayLottoService.findTicketsByDraw(drawToTest))
+			{
+				for (SaturdayLottoTicket.Result result : saturdayLottoTicket.getResults())
+				{
+					int winNumbers = 0;
+					for (int n : result.getNumbers())
+					{
+						if (lottoResult.getWinningNumbers().contains(n))
+							winNumbers++;
+					}
+					
+					if (winNumbers == 5)
+					{
+						log.info("1st prize: " + result.getNumbers().toString());
+						log.info("Prize win $" + lottoResult.getDivisions().get(0).getAmount());
+						return;
+					}
+				}				
+			}
+			
+			log.info(String.valueOf(i));
+				
+		}
+	}*/
 }

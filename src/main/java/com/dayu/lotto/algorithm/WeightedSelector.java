@@ -1,16 +1,16 @@
 package com.dayu.lotto.algorithm;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 
 public class WeightedSelector {
 
 	public Map<Integer,Integer> buildWeightingModel(List<Integer> allDraws) {
 
-		Map<Integer,Integer> weithingOptions = new HashMap<Integer,Integer>();
+		Map<Integer,Integer> weithingOptions = new TreeMap<Integer,Integer>();
 
 		for (Integer number : allDraws)
 		{
@@ -58,7 +58,7 @@ public class WeightedSelector {
 		//select a random value between 0 and our total
 		int random = new Random().nextInt(totalWeight);
 
-		//loop thru our weightings until we arrive at the correct one
+		//loop through our weightings until we arrive at the correct one
 		int current = 0;
 		for (int key : weightOptions.keySet()) {
 			current += weightOptions.get(key);

@@ -24,15 +24,4 @@ public class LottoController {
     	return modelAndView;
     }
 	
-	
-	
-	
-	
-	@RequestMapping("/ozLotto")
-	public ModelAndView ozLotto()
-    {
-    	ModelAndView modelAndView = new ModelAndView("ozLotto");	
-    	modelAndView.addObject("tickets", ozLottoService.findAllTickets());
-    	return modelAndView;
-    }
 }
