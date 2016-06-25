@@ -7,7 +7,7 @@
 	<packaging>war</packaging>
 
 	<properties>
-		<springCoreVersion>4.0.3.RELEASE</springCoreVersion>
+		<springCoreVersion>4.2.5.RELEASE</springCoreVersion>
 	</properties>
 
 	<repositories>
@@ -148,7 +148,7 @@
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
 			<artifactId>weka-stable</artifactId>
-			<version>3.6.6</version>
+			<version>3.6.13</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -163,7 +163,12 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-mongodb</artifactId>
-			<version>1.5.2.RELEASE</version>
+			<version>1.8.4.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-hadoop</artifactId>
+			<version>2.3.0.RELEASE</version>
 		</dependency>
 	</dependencies>
 	<build>
