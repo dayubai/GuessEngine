@@ -170,6 +170,16 @@
 			<artifactId>spring-data-hadoop</artifactId>
 			<version>2.3.0.RELEASE</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-core_2.11</artifactId>
+			<version>2.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.spark</groupId>
+			<artifactId>spark-mllib_2.11</artifactId>
+			<version>2.0.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
