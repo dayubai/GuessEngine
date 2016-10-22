@@ -6,8 +6,8 @@ import com.dayu.lotto.algorithm.GuessPredictor;
 
 public class WekaGuessPredictor implements GuessPredictor {
 
-	@Override
 	public List<Integer> predict() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
