@@ -1,7 +1,9 @@
 package com.dayu.lotto.service;
 
 import java.io.InputStream;
+import java.util.List;
 
+import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.entity.LottoTicket;
 
@@ -20,4 +22,6 @@ public interface LottoService  {
     void checkTicket(LottoTicket lottoTicket);
     
     LottoTicket findByTicketId(String id);
+    
+    List<JavaLabeledDocument> listWinnngNumbers(int max);
 }

@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
@@ -259,6 +260,12 @@ public class PowerBallServiceImpl implements PowerBallService {
 
 	public PowerBallTicket findByTicketId(String id) {
 		return lottoDAO.findTicketById(id, PowerBallTicket.class);
+	}
+
+	@Override
+	public List<JavaLabeledDocument> listWinnngNumbers(int max) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
