@@ -32,6 +32,8 @@ import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.ml.tuning.TrainValidationSplit;
 import org.apache.spark.ml.tuning.TrainValidationSplitModel;
+import org.apache.spark.mllib.fpm.AssociationRules;
+import org.apache.spark.mllib.fpm.FPGrowth;
 import org.apache.spark.mllib.stat.KernelDensity;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -46,6 +48,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 
 import com.dayu.lotto.TestAppConfig;
 
@@ -477,6 +480,37 @@ public class MLibTest implements Serializable {
 	    double[] densities = kd.estimate(new double[]{-1.0, 2.0, 5.0});
 
 	    System.out.println(Arrays.toString(densities));
+	    // $example off$
+
+	    spark.stop();
+	}
+	
+	@Test
+	public void testJavaAssociationRulesExample()
+	{
+		//SparkConf conf = new SparkConf().setAppName("JavaKernelDensityEstimationExample");
+	
+	//    JavaSparkContext jsc = new JavaSparkContext(conf);
+		SparkSession spark = SparkSession
+		.builder()
+		.appName("JavaAssociationRulesExample")
+		.getOrCreate();
+
+		// $example on$
+	    JavaRDD<FPGrowth.FreqItemset<String>> freqItemsets = sparkCtx.parallelize(Arrays.asList(
+	      new FreqItemset<String>(new String[] {"a"}, 15L),
+	      new FreqItemset<String>(new String[] {"b"}, 35L),
+	      new FreqItemset<String>(new String[] {"a", "b"}, 12L)
+	    ));
+
+	    AssociationRules arules = new AssociationRules()
+	      .setMinConfidence(0.7);
+	    JavaRDD<AssociationRules.Rule<String>> results = arules.run(freqItemsets);
+
+	    for (AssociationRules.Rule<String> rule : results.collect()) {
+	      System.out.println(
+	        rule.javaAntecedent() + " => " + rule.javaConsequent() + ", " + rule.confidence());
+	    }
 	    // $example off$
 
 	    spark.stop();

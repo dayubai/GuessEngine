@@ -29,6 +29,8 @@ import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
+import org.apache.spark.mllib.fpm.AssociationRules;
+import org.apache.spark.mllib.util.MLUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -194,6 +196,7 @@ public class OZLottoTest {
 	@Test
 	public void testOZLottoModelSelectionViaCrossValidationExample()
 	{
+		
 		SparkSession spark = SparkSession
 				.builder()
 				.appName("OZLottoModelSelectionViaCrossValidationExample")
@@ -201,8 +204,8 @@ public class OZLottoTest {
 
 		// $example on$
 		// Prepare training documents, which are labeled.
-	//	Dataset<Row> training = spark.createDataFrame(ozLottoService.listWinnngNumbers(1000), JavaLabeledDocument.class);
-				List<Row> dataTraining = Arrays.asList(
+		Dataset<Row> training = spark.createDataFrame(ozLottoService.listWinnngNumbers(1000), JavaLabeledDocument.class);
+				/*List<Row> dataTraining = Arrays.asList(
 						RowFactory.create(1.0, Vectors.dense(0.0, 1.1, 0.1)),
 						RowFactory.create(0.0, Vectors.dense(2.0, 1.0, -1.0)),
 						RowFactory.create(0.0, Vectors.dense(2.0, 1.3, 1.0)),
@@ -212,22 +215,22 @@ public class OZLottoTest {
 						new StructField("label", DataTypes.DoubleType, false, Metadata.empty()),
 						new StructField("features", new VectorUDT(), false, Metadata.empty())
 				});
-				Dataset<Row> training = spark.createDataFrame(dataTraining, schema);
+				Dataset<Row> training = spark.createDataFrame(dataTraining, schema);*/
 
 		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
-		/*Tokenizer tokenizer = new Tokenizer()
+		Tokenizer tokenizer = new Tokenizer()
 		.setInputCol("text")
-		.setOutputCol("words");*/
+		.setOutputCol("words");
 		HashingTF hashingTF = new HashingTF()
-		.setNumFeatures(1000)
-		.setInputCol("winningNumbers")
+		.setNumFeatures(45)
+		.setInputCol("words")
 		.setOutputCol("features");
 		LogisticRegression lr = new LogisticRegression()
 		.setMaxIter(10)
 		.setRegParam(0.01);
 		
 		Pipeline pipeline = new Pipeline()
-		.setStages(new PipelineStage[] {hashingTF, lr});
+		.setStages(new PipelineStage[] {tokenizer, hashingTF, lr});
 
 		// We use a ParamGridBuilder to construct a grid of parameters to search over.
 		// With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
