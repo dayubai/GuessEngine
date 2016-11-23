@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.ml.Pipeline;
 import org.apache.spark.ml.PipelineStage;
@@ -30,6 +31,8 @@ import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.mllib.fpm.AssociationRules;
+import org.apache.spark.mllib.fpm.FPGrowth;
+import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 import org.apache.spark.mllib.util.MLUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -204,7 +207,7 @@ public class OZLottoTest {
 
 		// $example on$
 		// Prepare training documents, which are labeled.
-		Dataset<Row> training = spark.createDataFrame(ozLottoService.listWinnngNumbers(1000), JavaLabeledDocument.class);
+		Dataset<Row> training = spark.createDataFrame(ozLottoService.listWinnngNumbers(20), JavaLabeledDocument.class);
 				/*List<Row> dataTraining = Arrays.asList(
 						RowFactory.create(1.0, Vectors.dense(0.0, 1.1, 0.1)),
 						RowFactory.create(0.0, Vectors.dense(2.0, 1.0, -1.0)),
@@ -222,11 +225,11 @@ public class OZLottoTest {
 		.setInputCol("text")
 		.setOutputCol("words");
 		HashingTF hashingTF = new HashingTF()
-		.setNumFeatures(45)
+		.setNumFeatures(1000)
 		.setInputCol("words")
 		.setOutputCol("features");
 		LogisticRegression lr = new LogisticRegression()
-		.setMaxIter(10)
+		.setMaxIter(3)
 		.setRegParam(0.01);
 		
 		Pipeline pipeline = new Pipeline()
@@ -236,7 +239,7 @@ public class OZLottoTest {
 		// With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
 		// this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
 		ParamMap[] paramGrid = new ParamGridBuilder()
-		.addGrid(hashingTF.numFeatures(), new int[] {10, 100, 1000})
+		.addGrid(hashingTF.numFeatures(), new int[] {100, 1000})
 		.addGrid(lr.regParam(), new double[] {0.1, 0.01})
 		.build();
 
@@ -248,16 +251,22 @@ public class OZLottoTest {
 		CrossValidator cv = new CrossValidator()
 		.setEstimator(pipeline)
 		.setEvaluator(new BinaryClassificationEvaluator())
-		.setEstimatorParamMaps(paramGrid).setNumFolds(2);  // Use 3+ in practice
+		.setEstimatorParamMaps(paramGrid)
+		.setNumFolds(2);  // Use 3+ in practice
 
 		// Run cross-validation, and choose the best set of parameters.
 		CrossValidatorModel cvModel = cv.fit(training);
+		//cvModel.save(getClass().getResource("/model/").getPath().concat("OZLottoRegressionModel"));
 
 		// Prepare test documents, which are unlabeled.
 		Dataset<Row> test = spark.createDataFrame(Arrays.asList(
-				new JavaDocument(1L, "44 2 1 45 20 35 36 26 6"),
-				new JavaDocument(5L, "44 2 1 45 20 35 26 6 36"),
-				new JavaDocument(6L, "43 2 18 22 20 35 16 26 7")
+				new JavaDocument(1L, "3 4 5 9 10 25 39"),
+				new JavaDocument(2L, "44 2 1 45 26 6 36"),
+				new JavaDocument(3L, "4 2 1 5 6 7 3"),
+				new JavaDocument(3L, "1 2 3 4 5 6 7"),
+				new JavaDocument(4L, "20 8 37 393 165 0 101"),
+				new JavaDocument(5L, "20 8 37 33 5 34 36"),
+				new JavaDocument(6L, "18 22 20 35 16 26 7")
 				), JavaDocument.class);
 
 		// Make predictions on test documents. cvModel uses the best model found (lrModel).
@@ -266,6 +275,90 @@ public class OZLottoTest {
 			System.out.println("(" + r.get(0) + ", " + r.get(1) + ") --> prob=" + r.get(2)
 					+ ", prediction=" + r.get(3));
 		}
+		// $example off$
+
+		spark.stop();
+	}
+	
+	@Test
+	public void testOZAssociationRulesExample()
+	{
+		SparkSession spark = SparkSession
+		.builder()
+		.appName("OZAssociationRulesExample")
+		.getOrCreate();
+
+		// $example on$
+	    JavaRDD<FPGrowth.FreqItemset<String>> freqItemsets = sparkCtx.parallelize(Arrays.asList(
+	      new FreqItemset<String>(new String[] {"a"}, 15L),
+	      new FreqItemset<String>(new String[] {"b"}, 35L),
+	      new FreqItemset<String>(new String[] {"a", "b"}, 12L)
+	    ));
+
+	    AssociationRules arules = new AssociationRules()
+	      .setMinConfidence(0.7);
+	    JavaRDD<AssociationRules.Rule<String>> results = arules.run(freqItemsets);
+
+	    for (AssociationRules.Rule<String> rule : results.collect()) {
+	      System.out.println(
+	        rule.javaAntecedent() + " => " + rule.javaConsequent() + ", " + rule.confidence());
+	    }
+	    // $example off$
+
+	    spark.stop();
+	}
+	
+	@Test
+	public void testSaveOZLottoModelSelectionViaCrossValidation() throws IOException
+	{
+		
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("SaveOZLottoModelSelectionViaCrossValidation")
+				.getOrCreate();
+
+		// $example on$
+		// Prepare training documents, which are labeled.
+		Dataset<Row> training = spark.createDataFrame(ozLottoService.listWinnngNumbers(20), JavaLabeledDocument.class);
+
+		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
+		Tokenizer tokenizer = new Tokenizer()
+		.setInputCol("text")
+		.setOutputCol("words");
+		HashingTF hashingTF = new HashingTF()
+		.setNumFeatures(1000)
+		.setInputCol("words")
+		.setOutputCol("features");
+		LogisticRegression lr = new LogisticRegression()
+		.setMaxIter(3)
+		.setRegParam(0.01);
+		
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {tokenizer, hashingTF, lr});
+
+		// We use a ParamGridBuilder to construct a grid of parameters to search over.
+		// With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
+		// this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
+		ParamMap[] paramGrid = new ParamGridBuilder()
+		.addGrid(hashingTF.numFeatures(), new int[] {100, 1000})
+		.addGrid(lr.regParam(), new double[] {0.1, 0.01})
+		.build();
+
+		// We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
+		// This will allow us to jointly choose parameters for all Pipeline stages.
+		// A CrossValidator requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
+		// Note that the evaluator here is a BinaryClassificationEvaluator and its default metric
+		// is areaUnderROC.
+		CrossValidator cv = new CrossValidator()
+		.setEstimator(pipeline)
+		.setEvaluator(new BinaryClassificationEvaluator())
+		.setEstimatorParamMaps(paramGrid)
+		.setNumFolds(2);  // Use 3+ in practice
+
+		// Run cross-validation, and choose the best set of parameters.
+		CrossValidatorModel cvModel = cv.fit(training);
+		cvModel.save(getClass().getResource("/model/").getPath().concat("OZLottoRegressionModel"));
+
 		// $example off$
 
 		spark.stop();

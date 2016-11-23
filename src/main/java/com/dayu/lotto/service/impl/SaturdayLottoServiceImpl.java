@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -327,4 +328,12 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public List<FreqItemset<String>> buildTrainingData() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 }

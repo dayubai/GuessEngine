@@ -3,6 +3,8 @@ package com.dayu.lotto.service;
 import java.io.InputStream;
 import java.util.List;
 
+import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
+
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.entity.LottoTicket;
@@ -24,4 +26,6 @@ public interface LottoService  {
     LottoTicket findByTicketId(String id);
     
     List<JavaLabeledDocument> listWinnngNumbers(int max);
+    
+    List<FreqItemset<String>> buildTrainingData();
 }

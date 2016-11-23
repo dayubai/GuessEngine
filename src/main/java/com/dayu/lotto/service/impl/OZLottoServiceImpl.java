@@ -7,11 +7,16 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java_cup.internal_error;
+
+import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +26,7 @@ import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
+import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.OZLottoTicket;
@@ -264,17 +270,45 @@ public class OZLottoServiceImpl implements OZLottoService {
 	public List<JavaLabeledDocument> listWinnngNumbers(int max) {
 
 		List<JavaLabeledDocument> numbers = new ArrayList<JavaLabeledDocument>();
+		long id = 1l;
 		for (OZLottoResult result: findLast(max))
 		{
-			String text = "";
-			for (Integer number: result.getWinningNumbers())
+			String winText = "";
+			String nonWinText = "";
+			
+			// non winning number
+			for (int i = 1; i <= pool(); i++)
 			{
-				text += number.toString() + " ";
+				if ( result.getWinningNumbers().contains(i))
+					winText += i + " ";
+				else
+					nonWinText += i + " ";
 			}
-			numbers.add(new JavaLabeledDocument(result.getDrawNumber(), text, 1.0));
+			
+			numbers.add(new JavaLabeledDocument(id++, winText, 1.0));
+			numbers.add(new JavaLabeledDocument(id++, nonWinText, 0.0));
 		}
 		
 		return numbers;
+	}
+
+	@Override
+	public List<FreqItemset<String>> buildTrainingData() {
+		List<FreqItemset<String>> training = new ArrayList<FreqItemset<String>>();
+		/*Arrays.asList(
+				new FreqItemset<String>(new String[] {"a"}, 15L),
+				new FreqItemset<String>(new String[] {"b"}, 35L),
+				new FreqItemset<String>(new String[] {"a", "b"}, 12L)
+				)
+				Map<String, Long> map = new HashMap<String, Long>();
+				
+for (LottoResult lr: findLast(1000))
+{
+	List<Integer> numbers = lr.getWinningNumbers();
+	for (Integer number : numbers)
+	if (map.get(numbers.g))
+}*/
+				return training;
 	}
 
 }
