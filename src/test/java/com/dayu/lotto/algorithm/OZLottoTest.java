@@ -207,7 +207,7 @@ public class OZLottoTest {
 
 		// $example on$
 		// Prepare training documents, which are labeled.
-		Dataset<Row> training = spark.createDataFrame(ozLottoService.listWinnngNumbers(20), JavaLabeledDocument.class);
+		Dataset<Row> training = spark.createDataFrame(ozLottoService.buildTrainingData(20), JavaLabeledDocument.class);
 				/*List<Row> dataTraining = Arrays.asList(
 						RowFactory.create(1.0, Vectors.dense(0.0, 1.1, 0.1)),
 						RowFactory.create(0.0, Vectors.dense(2.0, 1.0, -1.0)),
@@ -319,7 +319,7 @@ public class OZLottoTest {
 
 		// $example on$
 		// Prepare training documents, which are labeled.
-		Dataset<Row> training = spark.createDataFrame(ozLottoService.listWinnngNumbers(20), JavaLabeledDocument.class);
+		Dataset<Row> training = spark.createDataFrame(ozLottoService.buildTrainingData(20), JavaLabeledDocument.class);
 
 		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
 		Tokenizer tokenizer = new Tokenizer()

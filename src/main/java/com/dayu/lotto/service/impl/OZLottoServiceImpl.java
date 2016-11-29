@@ -7,16 +7,25 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import java_cup.internal_error;
-
-import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineStage;
+import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
+import org.apache.spark.ml.feature.HashingTF;
+import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.ml.param.ParamMap;
+import org.apache.spark.ml.tuning.CrossValidator;
+import org.apache.spark.ml.tuning.CrossValidatorModel;
+import org.apache.spark.ml.tuning.ParamGridBuilder;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +46,13 @@ public class OZLottoServiceImpl implements OZLottoService {
 
 	@Autowired
 	private LottoDAO lottoDAO;
+	
+	@Autowired
+	private JavaSparkContext javaSparkContext;
 
 	private static Logger log = LoggerFactory.getLogger(OZLottoServiceImpl.class);
-	private static final int SAMPLE = 10;
-
+	private static final int SAMPLE = 20;
+	
 	public void uploadResults(InputStream is) throws Exception {
 		BufferedReader reader = null;
 		DateFormat df = new SimpleDateFormat("yyyyMMdd");
@@ -128,6 +140,7 @@ public class OZLottoServiceImpl implements OZLottoService {
 
 	public String draw(WeightedSelector selector, int draw, int games) {
 		List<OZLottoResult> results = findLast(SAMPLE);
+		CrossValidatorModel cvModel = getCrossValidatorModel();
 
 		// all numbers collected from results
 		List<Integer> allDraws = new ArrayList<Integer>();
@@ -154,7 +167,7 @@ public class OZLottoServiceImpl implements OZLottoService {
 				totalWeight += model.get(key);
 			}
 
-			ticketResult.setNumbers(selector.select(numberToPick(), model, totalWeight));
+			ticketResult.setNumbers(selector.select(numberToPick(), model, totalWeight, cvModel));
 
 			ticketResults.add(ticketResult);
 		}
@@ -267,7 +280,7 @@ public class OZLottoServiceImpl implements OZLottoService {
 	}
 
 	@Override
-	public List<JavaLabeledDocument> listWinnngNumbers(int max) {
+	public List<JavaLabeledDocument> buildTrainingData(int max) {
 
 		List<JavaLabeledDocument> numbers = new ArrayList<JavaLabeledDocument>();
 		long id = 1l;
@@ -291,24 +304,54 @@ public class OZLottoServiceImpl implements OZLottoService {
 		
 		return numbers;
 	}
+	
+	public CrossValidatorModel getCrossValidatorModel()
+	{
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("getOZCrossValidatorModel")
+				.getOrCreate();
 
-	@Override
-	public List<FreqItemset<String>> buildTrainingData() {
-		List<FreqItemset<String>> training = new ArrayList<FreqItemset<String>>();
-		/*Arrays.asList(
-				new FreqItemset<String>(new String[] {"a"}, 15L),
-				new FreqItemset<String>(new String[] {"b"}, 35L),
-				new FreqItemset<String>(new String[] {"a", "b"}, 12L)
-				)
-				Map<String, Long> map = new HashMap<String, Long>();
-				
-for (LottoResult lr: findLast(1000))
-{
-	List<Integer> numbers = lr.getWinningNumbers();
-	for (Integer number : numbers)
-	if (map.get(numbers.g))
-}*/
-				return training;
+		// $example on$
+		// Prepare training documents, which are labeled.
+		Dataset<Row> training = spark.createDataFrame(buildTrainingData(SAMPLE), JavaLabeledDocument.class);
+
+		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
+		Tokenizer tokenizer = new Tokenizer()
+		.setInputCol("text")
+		.setOutputCol("words");
+		HashingTF hashingTF = new HashingTF()
+		.setNumFeatures(1000)
+		.setInputCol("words")
+		.setOutputCol("features");
+		LogisticRegression lr = new LogisticRegression()
+		.setMaxIter(3)
+		.setRegParam(0.01);
+		
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {tokenizer, hashingTF, lr});
+
+		// We use a ParamGridBuilder to construct a grid of parameters to search over.
+		// With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
+		// this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
+		ParamMap[] paramGrid = new ParamGridBuilder()
+		.addGrid(hashingTF.numFeatures(), new int[] {100, 1000})
+		.addGrid(lr.regParam(), new double[] {0.1, 0.01})
+		.build();
+
+		// We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
+		// This will allow us to jointly choose parameters for all Pipeline stages.
+		// A CrossValidator requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
+		// Note that the evaluator here is a BinaryClassificationEvaluator and its default metric
+		// is areaUnderROC.
+		CrossValidator cv = new CrossValidator()
+		.setEstimator(pipeline)
+		.setEvaluator(new BinaryClassificationEvaluator())
+		.setEstimatorParamMaps(paramGrid)
+		.setNumFolds(2);  // Use 3+ in practice
+
+		// Run cross-validation, and choose the best set of parameters.
+		return cv.fit(training);
 	}
 
 }

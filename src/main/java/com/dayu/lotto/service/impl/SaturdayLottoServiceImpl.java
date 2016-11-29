@@ -324,13 +324,7 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 	}
 
 	@Override
-	public List<JavaLabeledDocument> listWinnngNumbers(int max) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<FreqItemset<String>> buildTrainingData() {
+	public List<JavaLabeledDocument> buildTrainingData(int max) {
 		// TODO Auto-generated method stub
 		return null;
 	}

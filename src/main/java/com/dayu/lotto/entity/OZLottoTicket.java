@@ -26,6 +26,7 @@ public class OZLottoTicket extends LottoTicket {
 	{
 		private List<Integer> numbers;
 		private BigDecimal prize;
+		private Double prediction;
 
 		public List<Integer> getNumbers() {
 			return numbers;
@@ -38,6 +39,12 @@ public class OZLottoTicket extends LottoTicket {
 		}
 		public void setPrize(BigDecimal prize) {
 			this.prize = prize;
+		}
+		public Double getPrediction() {
+			return prediction;
+		}
+		public void setPrediction(Double prediction) {
+			this.prediction = prediction;
 		}
 
 	}

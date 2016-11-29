@@ -1,9 +1,9 @@
 package com.dayu.lotto.algorithm;
 
-import java.util.List;
+import org.apache.spark.ml.Model;
 
-public interface GuessPredictor {
+public interface GuessPredictor<M> {
 	
-	List<Integer> predict();
+	double predict(M model, JavaDocument testData);
 
 }

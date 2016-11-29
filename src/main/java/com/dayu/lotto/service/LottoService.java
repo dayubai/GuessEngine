@@ -25,7 +25,5 @@ public interface LottoService  {
     
     LottoTicket findByTicketId(String id);
     
-    List<JavaLabeledDocument> listWinnngNumbers(int max);
-    
-    List<FreqItemset<String>> buildTrainingData();
+    List<JavaLabeledDocument> buildTrainingData(int max);
 }
