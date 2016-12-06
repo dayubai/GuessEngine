@@ -74,14 +74,14 @@ public class OZLottoTest {
 	private static JavaSparkContext sparkCtx;
 	@Before
 	public void init() throws IllegalArgumentException, IOException {
-		System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
+		//System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
 		//ctxtBuilder = new ContextBuilder(tempFolder);
-		SparkConf conf = new SparkConf();
+		/*SparkConf conf = new SparkConf();
 		conf.setMaster("local[2]");
 		conf.setAppName("junit");
 		sparkCtx = new JavaSparkContext(conf);  
-		/*SparkConf conf = new SparkConf().setAppName("App_Name")
-    .setMaster("spark://localhost:18080").set("spark.ui.port","18080"); */  
+		SparkConf conf = new SparkConf().setAppName("App_Name")
+    .setMaster("spark://localhost:18080").set("spark.ui.port","18080");   */
 	}
 
 	@Test
@@ -159,7 +159,7 @@ public class OZLottoTest {
 			if (mongoTemplate.collectionExists(SaturdayLottoTicket.class))
 				mongoTemplate.dropCollection(SaturdayLottoTicket.class);
 
-			ozLottoService.draw(new WeightedSelector(), drawToTest, 50);
+			ozLottoService.draw(new WeightedSelector(), drawToTest, 5000);
 
 			i += 50;
 
@@ -308,8 +308,7 @@ public class OZLottoTest {
 	    spark.stop();
 	}
 	
-	@Test
-	public void testSaveOZLottoModelSelectionViaCrossValidation() throws IOException
+	private CrossValidatorModel getModel() throws IOException
 	{
 		
 		SparkSession spark = SparkSession
@@ -357,10 +356,11 @@ public class OZLottoTest {
 
 		// Run cross-validation, and choose the best set of parameters.
 		CrossValidatorModel cvModel = cv.fit(training);
-		cvModel.save(getClass().getResource("/model/").getPath().concat("OZLottoRegressionModel"));
 
 		// $example off$
 
 		spark.stop();
+		
+		return cvModel;
 	}
 }
