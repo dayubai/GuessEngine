@@ -12,7 +12,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineStage;
+import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
+import org.apache.spark.ml.feature.HashingTF;
+import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.ml.param.ParamMap;
+import org.apache.spark.ml.tuning.CrossValidator;
+import org.apache.spark.ml.tuning.CrossValidatorModel;
+import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +36,7 @@ import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.LottoTicket;
+import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
 import com.dayu.lotto.service.SaturdayLottoService;
@@ -193,6 +207,8 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 
 	public String draw(WeightedSelector selector, int draw, int games) {
 		
+		CrossValidatorModel cvModel = getCrossValidatorModel();
+		
 		List<SaturdayLottoResult> results = findLast(SAMPLE);
 
 		// all numbers collected from results
@@ -220,7 +236,7 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 				totalWeight += model.get(key);
 			}
 
-			ticketResult.setNumbers(selector.select(numberToPick(), model, totalWeight));
+			ticketResult.setNumbers(selector.select(numberToPick(), model, totalWeight, cvModel));
 			
 			ticketResults.add(ticketResult);
 		}
@@ -325,9 +341,75 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 
 	@Override
 	public List<JavaLabeledDocument> buildTrainingData(int max) {
-		// TODO Auto-generated method stub
-		return null;
+		List<JavaLabeledDocument> numbers = new ArrayList<JavaLabeledDocument>();
+		long id = 1l;
+		for (SaturdayLottoResult result: findLast(max))
+		{
+			String winText = "";
+			String nonWinText = "";
+			
+			// non winning number
+			for (int i = 1; i <= pool(); i++)
+			{
+				if ( result.getWinningNumbers().contains(i))
+					winText += i + " ";
+				else
+					nonWinText += i + " ";
+			}
+			
+			numbers.add(new JavaLabeledDocument(id++, winText, 1.0));
+			numbers.add(new JavaLabeledDocument(id++, nonWinText, 0.0));
+		}
+		
+		return numbers;
 	}
 
-	
+	public CrossValidatorModel getCrossValidatorModel()
+	{
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("getSatCrossValidatorModel")
+				.getOrCreate();
+
+		// $example on$
+		// Prepare training documents, which are labeled.
+		Dataset<Row> training = spark.createDataFrame(buildTrainingData(SAMPLE), JavaLabeledDocument.class);
+
+		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
+		Tokenizer tokenizer = new Tokenizer()
+		.setInputCol("text")
+		.setOutputCol("words");
+		HashingTF hashingTF = new HashingTF()
+		.setNumFeatures(1000)
+		.setInputCol("words")
+		.setOutputCol("features");
+		LogisticRegression lr = new LogisticRegression()
+		.setMaxIter(3)
+		.setRegParam(0.01);
+		
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {tokenizer, hashingTF, lr});
+
+		// We use a ParamGridBuilder to construct a grid of parameters to search over.
+		// With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
+		// this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
+		ParamMap[] paramGrid = new ParamGridBuilder()
+		.addGrid(hashingTF.numFeatures(), new int[] {100, 1000})
+		.addGrid(lr.regParam(), new double[] {0.1, 0.01})
+		.build();
+
+		// We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
+		// This will allow us to jointly choose parameters for all Pipeline stages.
+		// A CrossValidator requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
+		// Note that the evaluator here is a BinaryClassificationEvaluator and its default metric
+		// is areaUnderROC.
+		CrossValidator cv = new CrossValidator()
+		.setEstimator(pipeline)
+		.setEvaluator(new BinaryClassificationEvaluator())
+		.setEstimatorParamMaps(paramGrid)
+		.setNumFolds(2);  // Use 3+ in practice
+
+		// Run cross-validation, and choose the best set of parameters.
+		return cv.fit(training);
+	}
 }
