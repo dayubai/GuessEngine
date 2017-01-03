@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.file.Path;
@@ -14,6 +15,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineStage;
+import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
+import org.apache.spark.ml.feature.HashingTF;
+import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.ml.param.ParamMap;
+import org.apache.spark.ml.tuning.CrossValidator;
+import org.apache.spark.ml.tuning.CrossValidatorModel;
+import org.apache.spark.ml.tuning.ParamGridBuilder;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -46,6 +61,20 @@ public class LottoTest {
 	private MongoTemplate mongoTemplate;
 	
 	private static Logger log = LoggerFactory.getLogger(LottoTest.class);
+	
+	private static JavaSparkContext sparkCtx;
+	
+	@Before
+	public void init() throws IllegalArgumentException, IOException {
+		//System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
+		//ctxtBuilder = new ContextBuilder(tempFolder);
+		/*SparkConf conf = new SparkConf();
+		conf.setMaster("local[2]");
+		conf.setAppName("junit");
+		sparkCtx = new JavaSparkContext(conf);  
+		SparkConf conf = new SparkConf().setAppName("App_Name")
+    .setMaster("spark://localhost:18080").set("spark.ui.port","18080");   */
+	}
 
 	@Before
 	public void setUp() {
@@ -169,6 +198,79 @@ public class LottoTest {
 			log.info(String.valueOf(i));
 				
 		}
+	}
+	
+	@Test
+	public void testLottoModelSelectionViaCrossValidationExample()
+	{
+		
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("SaturdayLottoModelSelectionViaCrossValidationExample")
+				.getOrCreate();
+
+		// $example on$
+		// Prepare training documents, which are labeled.
+		Dataset<Row> training = spark.createDataFrame(saturdayLottoService.buildTrainingData(15), JavaLabeledDocument.class);
+
+		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
+		Tokenizer tokenizer = new Tokenizer()
+		.setInputCol("text")
+		.setOutputCol("words");
+		HashingTF hashingTF = new HashingTF()
+		.setNumFeatures(1000)
+		.setInputCol("words")
+		.setOutputCol("features");
+		LogisticRegression lr = new LogisticRegression()
+		.setMaxIter(3)
+		.setRegParam(0.01);
+		
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {tokenizer, hashingTF, lr});
+
+		// We use a ParamGridBuilder to construct a grid of parameters to search over.
+		// With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
+		// this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
+		ParamMap[] paramGrid = new ParamGridBuilder()
+		.addGrid(hashingTF.numFeatures(), new int[] {100, 1000})
+		.addGrid(lr.regParam(), new double[] {0.1, 0.01})
+		.build();
+
+		// We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
+		// This will allow us to jointly choose parameters for all Pipeline stages.
+		// A CrossValidator requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
+		// Note that the evaluator here is a BinaryClassificationEvaluator and its default metric
+		// is areaUnderROC.
+		CrossValidator cv = new CrossValidator()
+		.setEstimator(pipeline)
+		.setEvaluator(new BinaryClassificationEvaluator())
+		.setEstimatorParamMaps(paramGrid)
+		.setNumFolds(5);  // Use 3+ in practice
+
+		// Run cross-validation, and choose the best set of parameters.
+		CrossValidatorModel cvModel = cv.fit(training);
+		//cvModel.save(getClass().getResource("/model/").getPath().concat("OZLottoRegressionModel"));
+
+		// Prepare test documents, which are unlabeled.
+		Dataset<Row> test = spark.createDataFrame(Arrays.asList(
+				new JavaDocument(1L, "3 4 5 9 10 25"),
+				new JavaDocument(2L, "44 2 1 45 26 6"),
+				new JavaDocument(3L, "4 2 1 5 6 7"),
+				new JavaDocument(3L, "1 2 7 4 5 6"),
+				new JavaDocument(4L, "20 8 37 393 165 101"),
+				new JavaDocument(5L, "20 8 37 33 5 34"),
+				new JavaDocument(6L, "18 22 20 35 16 26")
+				), JavaDocument.class);
+
+		// Make predictions on test documents. cvModel uses the best model found (lrModel).
+		Dataset<Row> predictions = cvModel.transform(test);
+		for (Row r : predictions.select("id", "text", "probability", "prediction").collectAsList()) {
+			System.out.println("(" + r.get(0) + ", " + r.get(1) + ") --> prob=" + r.get(2)
+					+ ", prediction=" + r.get(3));
+		}
+		// $example off$
+
+		spark.stop();
 	}
 
 }

@@ -6,11 +6,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 
 import com.dayu.lotto.algorithm.spark.SparkGuessPredictor;
 
 public class WeightedSelector {
+	
+	private static Logger log = Logger.getLogger(WeightedSelector.class);
 
 	public Map<Integer,Integer> buildWeightingModel(List<Integer> allDraws) {
 
@@ -49,9 +52,14 @@ public class WeightedSelector {
 			weightOptions.remove(number);
 		}
 		
+		double predictResult = new SparkGuessPredictor().predict(model, new JavaDocument(1, text));
 		
-		if (new SparkGuessPredictor().predict(model, new JavaDocument(1, text)) != 1L)
+		if (predictResult != 1L)
+		{
+			log.debug("[" + text + "] : predict=" + predictResult ); 
+			
 			return select(numberToSelect, weightOptions, totalWeight, model);
+		}
 		else 
 			return predict;
 
