@@ -8,7 +8,10 @@
 	<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 </head>
 <body>
-	
+	<form action="/powerball/uploadResult" method="post" enctype="multipart/form-data">
+    <input type="file" name="file"/>&nbsp;<input type="submit"value="Upload New Result"/>
+    </form>
+    
     <form action="/powerball/ticket/new" method="post">
     <input type="text" name="draws" value="958"/>&nbsp;<input type="text" name="games" value="12"/>&nbsp;<input type="submit"value="New Ticket"/>
     </form>

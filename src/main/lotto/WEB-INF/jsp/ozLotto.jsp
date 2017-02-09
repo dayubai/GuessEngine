@@ -8,6 +8,10 @@
 	<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 </head>
 <body>
+	<form action="/ozLotto/uploadResult" method="post" enctype="multipart/form-data">
+    <input type="file" name="file"/>&nbsp;<input type="submit"value="Upload New Result"/>
+    </form>
+    
 	<form action="/ozLotto/ticket/new" method="post">
     <input type="text" name="draws" value=""/>&nbsp;<input type="text" name="games" value="18"/>&nbsp;<input type="submit"value="New Ticket"/>
     </form>
