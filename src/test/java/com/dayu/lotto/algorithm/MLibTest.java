@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
@@ -54,6 +53,7 @@ import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 
 import com.dayu.lotto.TestAppConfig;
 
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestAppConfig.class})
 public class MLibTest implements Serializable {
@@ -61,12 +61,12 @@ public class MLibTest implements Serializable {
 	private static JavaSparkContext sparkCtx;
 	@Before
 	public void init() throws IllegalArgumentException, IOException {
-		System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
+		/*System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
 		//ctxtBuilder = new ContextBuilder(tempFolder);
 		SparkConf conf = new SparkConf();
 		conf.setMaster("local[2]");
 		conf.setAppName("junit");
-		sparkCtx = new JavaSparkContext(conf);  
+		sparkCtx = new JavaSparkContext(conf);  */
 		/*SparkConf conf = new SparkConf().setAppName("App_Name")
     .setMaster("spark://localhost:18080").set("spark.ui.port","18080"); */  
 	}

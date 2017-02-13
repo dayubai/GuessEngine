@@ -18,7 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class TestAppConfig {
 	@Bean
 	public JavaSparkContext javaSparkContext() throws Exception {
-		System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
+		//System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
 		//ctxtBuilder = new ContextBuilder(tempFolder);
 		SparkConf conf = new SparkConf();
 		conf.setMaster("local[2]");
