@@ -238,13 +238,10 @@
 						</goals>
 						<configuration>
 							<overwrite>true</overwrite>
-							<outputDirectory>${project.build.directory}/lotto/WEB-INF/</outputDirectory>
+							<outputDirectory>${project.build.directory}/lotto/</outputDirectory>
 							<resources>
 								<resource>
-									<directory>src/main/lotto/WEB-INF</directory>
-									<includes>
-										<include>lotto-servlet.xml</include>
-									</includes>
+									<directory>src/main/lotto</directory>
 								</resource>
 							</resources>
 						</configuration>
