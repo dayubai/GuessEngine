@@ -26,7 +26,7 @@ public class AppConfig {
 		//ctxtBuilder = new ContextBuilder(tempFolder);
 		SparkConf conf = new SparkConf();
 		conf.setMaster("local[2]");
-		conf.setAppName("junit");
+		conf.setAppName("Lotto Predictor");
 		return new JavaSparkContext(conf); 
 	}
 	

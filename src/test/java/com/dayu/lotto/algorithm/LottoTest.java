@@ -4,7 +4,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.file.Path;
@@ -272,5 +274,49 @@ public class LottoTest {
 
 		spark.stop();
 	}
+	
+	@Test
+	public void testWriteAllNumber() throws IOException
+	{
+		String filename = getClass().getResource("/results").getPath() + "/AllLottoNumber.csv";
+		
+		FileWriter fw = new FileWriter(filename, true);
+		PrintWriter pw = new PrintWriter(fw);
+		
+		/*int[] array = {1,2,3,4,5,6};
+		
+		pw.println(array[0] + " " + array[1] + " " + array[2] + " " + array[3] + " " + array[4] + " " + array[5]);
+		*/
+		for (int k= 0; k < 40; k++)
+		{
+			int[] arr = new int[] {1+k, 2+k,3+k,4+k,5+k,6+k};
+			pw.println(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3] + " " + arr[4] + " " + arr[5]);
+			
+			for (int i = 0; i<arr.length; i++)
+			{
+				int[] temp = new int[6];
+				temp[0]=arr[0];
+				temp[1]=arr[1];
+				temp[2]=arr[2];
+				temp[3]=arr[3];
+				temp[4]=arr[4];
+				temp[5]=arr[5];
+				
+				
+				
+				for (int j=7+k; j<46; j++)
+				{
+					temp[i] = j;
+					
+					pw.println(temp[0] + " " + temp[1] + " " + temp[2] + " " + temp[3] + " " + temp[4] + " " + temp[5]);
+				}
+				
+			}
+		}
+		
+		pw.close();
+	}
+	
+	
 
 }
