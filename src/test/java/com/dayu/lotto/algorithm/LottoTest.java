@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.ml.Pipeline;
@@ -283,11 +285,86 @@ public class LottoTest {
 		FileWriter fw = new FileWriter(filename, true);
 		PrintWriter pw = new PrintWriter(fw);
 		
+		
+		List<Integer> l1 = new ArrayList<Integer>();
+		List<Integer> l2 = new ArrayList<Integer>();
+		List<Integer> l3 = new ArrayList<Integer>();
+		List<Integer> l4 = new ArrayList<Integer>();
+		List<Integer> l5 = new ArrayList<Integer>();
+		List<Integer> l6 = new ArrayList<Integer>();
+		
+		
+		
+		for (int i = 1; i <= 45; i++)
+		{
+			l1.add(i);
+			l2.add(i);
+			l3.add(i);
+			l4.add(i);
+			l5.add(i);
+			l6.add(i);
+		}
+		
+		List<Integer> temp = new ArrayList<Integer>(6);
+		for (int i1 = 0; i1 < 45; i1++)
+		{
+			int n1 = l1.get(i1);
+			temp.add(n1);
+			
+			for (int i2 = 0; i2<45; i2++)
+			{
+				if (!temp.contains(l2.get(i2)))
+				{
+					temp.add(l2.get(i2));
+					
+					for (int i3 =0; i3<45; i3++)
+					{
+						if (!temp.contains(l3.get(i3)))
+						{
+							temp.add(l3.get(i3));
+							for (int i4=0;i4<45;i4++)
+							{
+								if (!temp.contains(l4.get(i4)))
+								{
+									temp.add(l4.get(i4));
+									for (int i5=0; i5<45;i5++)
+									{
+										if (!temp.contains(i5))
+										{
+											temp.add(l5.get(i5));
+											for (int i6=0; i6<45;i6++)
+											{
+												if (!temp.contains(l6.get(i6)))
+												{
+													temp.add(l6.get(i6));
+													// print temp
+													pw.println(temp.get(0) + " " + temp.get(1) + " " + temp.get(2) + " " + temp.get(3) + " " + temp.get(4) + " " + temp.get(5));
+													pw.flush();
+													
+													temp.remove(5);
+												}
+											}
+											temp.remove(4);
+										}
+									}
+									temp.remove(3);
+								}
+							}
+							temp.remove(2);
+						}
+					}
+					temp.remove(1);
+				}
+			}
+			temp.remove(0);
+		}
+		
+		
 		/*int[] array = {1,2,3,4,5,6};
 		
 		pw.println(array[0] + " " + array[1] + " " + array[2] + " " + array[3] + " " + array[4] + " " + array[5]);
 		*/
-		for (int k= 0; k < 40; k++)
+		/*for (int k= 0; k < 40; k++)
 		{
 			int[] arr = new int[] {1+k, 2+k,3+k,4+k,5+k,6+k};
 			pw.println(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3] + " " + arr[4] + " " + arr[5]);
@@ -312,11 +389,52 @@ public class LottoTest {
 				}
 				
 			}
-		}
+		}*/
 		
 		pw.close();
 	}
 	
-	
+	/*private void addNumberToTemp(List<Integer> numbers, List <Integer> temp, PrintWriter pw)
+	{
+		for (int i = 0; i < numbers.size(); i++)
+		{
+			if (!temp.contains(numbers.get(i)))
+			{
+				temp.add(numbers.get(i));
+				
+				if (temp.size() <6)
+				{
+					addNumberToTemp(numbers, temp, pw);
+				}
+				else
+				{
+					for (Integer n : temp)
+					{
+						pw.print(n);
+						pw.print(" ");
+					}
+					pw.println();
+				}
+			}
+
+			
+			
+			
+			List<Integer> temp = new ArrayList<Integer>(6);
+			int n1 = numbers.get(i);
+			temp.add(n1);
+			
+			for (int i2 = 0; i2<45; i2++)
+			{
+				if (!temp.contains(l2.get(i2)))
+				{
+					temp.add(l2.get(i2));
+					
+					for (int i3 =0; i3<45; i3++)
+				}
+			}
+		}
+		
+	}*/
 
 }
