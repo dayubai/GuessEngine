@@ -10,5 +10,7 @@
 	<a href="/saturdayLotto">Saturday Lotto</a><br/>
 	<a href="/powerball">Powerball</a><br/>
 	<a href="/ozLotto">OZ Lotto</a>
+	
+	<a href="/saturdayLotto/predict">Predict Saturday Lotto</a><br/>
 </body>
 </html>

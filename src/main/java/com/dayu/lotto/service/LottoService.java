@@ -7,6 +7,7 @@ import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
+import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
 
 public interface LottoService  {
@@ -26,4 +27,6 @@ public interface LottoService  {
     LottoTicket findByTicketId(String id);
     
     List<JavaLabeledDocument> buildTrainingData(int max);
+    
+    void generateNumberPredictions ();
 }

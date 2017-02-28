@@ -22,6 +22,7 @@ import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
+import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.entity.PowerBallResult;
 import com.dayu.lotto.entity.PowerBallTicket;
@@ -267,6 +268,13 @@ public class PowerBallServiceImpl implements PowerBallService {
 	public List<JavaLabeledDocument> buildTrainingData(int max) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+
+	@Override
+	public void generateNumberPredictions() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	

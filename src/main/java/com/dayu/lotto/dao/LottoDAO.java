@@ -3,6 +3,7 @@ package com.dayu.lotto.dao;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
 
@@ -22,4 +23,6 @@ public interface LottoDAO {
 	<T extends LottoTicket> List<T> findAllTickets(Class<T> entityClass);
 	
 	<T extends LottoTicket> T findTicketById(String id, Class<T> entityClass);
+	
+	<T extends LottoNumberPrediction> String saveOrUpdateNumberPrediction(T lottoNumberPrediction);
 }

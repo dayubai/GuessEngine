@@ -23,6 +23,8 @@ public class SparkGuessPredictor implements GuessPredictor <CrossValidatorModel>
 		// Make predictions on test documents. cvModel uses the best model found (lrModel).
 		Dataset<Row> predictions = model.transform(test);
 		
+		spark.stop();
+		
 		return Double.valueOf(predictions.select("prediction").first().get(0).toString());
 	}
 	

@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -31,12 +32,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.dayu.lotto.algorithm.JavaDocument;
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
+import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.entity.OZLottoResult;
+import com.dayu.lotto.entity.SaturdayLottoPrediction;
+import com.dayu.lotto.entity.SaturdayLottoPrediction.SinglePredictionObject;
 import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
 import com.dayu.lotto.service.SaturdayLottoService;
@@ -51,6 +56,7 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 	private LottoDAO lottoDAO;
 
 	public void uploadResults(InputStream is) throws Exception {
+		
 		BufferedReader reader = null;
 		DateFormat df = new SimpleDateFormat("yyyyMMdd");
 		try {
@@ -412,4 +418,167 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 		// Run cross-validation, and choose the best set of parameters.
 		return cv.fit(training);
 	}
+
+	@Override
+	public void generateNumberPredictions() {
+		
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("getSatCrossValidatorModel")
+				.getOrCreate();
+
+		// $example on$
+		// Prepare training documents, which are labeled.
+		Dataset<Row> training = spark.createDataFrame(buildTrainingData(SAMPLE), JavaLabeledDocument.class);
+
+		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
+		Tokenizer tokenizer = new Tokenizer()
+		.setInputCol("text")
+		.setOutputCol("words");
+		HashingTF hashingTF = new HashingTF()
+		.setNumFeatures(1000)
+		.setInputCol("words")
+		.setOutputCol("features");
+		LogisticRegression lr = new LogisticRegression()
+		.setMaxIter(3)
+		.setRegParam(0.01);
+		
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {tokenizer, hashingTF, lr});
+
+		// We use a ParamGridBuilder to construct a grid of parameters to search over.
+		// With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
+		// this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
+		ParamMap[] paramGrid = new ParamGridBuilder()
+		.addGrid(hashingTF.numFeatures(), new int[] {100, 1000})
+		.addGrid(lr.regParam(), new double[] {0.1, 0.01})
+		.build();
+
+		// We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
+		// This will allow us to jointly choose parameters for all Pipeline stages.
+		// A CrossValidator requires an Estimator, a set of Estimator ParamMaps, and an Evaluator.
+		// Note that the evaluator here is a BinaryClassificationEvaluator and its default metric
+		// is areaUnderROC.
+		CrossValidator cv = new CrossValidator()
+		.setEstimator(pipeline)
+		.setEvaluator(new BinaryClassificationEvaluator())
+		.setEstimatorParamMaps(paramGrid)
+		.setNumFolds(2);  // Use 3+ in practice
+
+		// Run cross-validation, and choose the best set of parameters.
+		CrossValidatorModel model = cv.fit(training);
+		
+		processPrdiction(spark, model);
+		
+		spark.stop();
+	}
+	
+	private void processPrdiction(SparkSession spark, CrossValidatorModel model)
+	{
+		// Drop SaturdayLottoPrediction collection
+		
+		
+		SaturdayLottoPrediction obj = new SaturdayLottoPrediction();
+		
+		List<SinglePredictionObject> predictionObjects = new ArrayList<SinglePredictionObject>();
+		List<JavaDocument> jDocs = new ArrayList<JavaDocument>();
+		
+		List<Integer> l1 = new ArrayList<Integer>();
+		List<Integer> l2 = new ArrayList<Integer>();
+		List<Integer> l3 = new ArrayList<Integer>();
+		List<Integer> l4 = new ArrayList<Integer>();
+		List<Integer> l5 = new ArrayList<Integer>();
+		List<Integer> l6 = new ArrayList<Integer>();
+		
+		long id =1;
+		
+		for (int i = 1; i <= 45; i++)
+		{
+			l1.add(i);
+			l2.add(i);
+			l3.add(i);
+			l4.add(i);
+			l5.add(i);
+			l6.add(i);
+		}
+		
+		List<Integer> temp = new ArrayList<Integer>(6);
+		for (int i1 = 0; i1 < 45; i1++)
+		{
+			int n1 = l1.get(i1);
+			temp.add(n1);
+			
+			for (int i2 = 0; i2<45; i2++)
+			{
+				if (!temp.contains(l2.get(i2)))
+				{
+					temp.add(l2.get(i2));
+					
+					for (int i3 =0; i3<45; i3++)
+					{
+						if (!temp.contains(l3.get(i3)))
+						{
+							temp.add(l3.get(i3));
+							for (int i4=0;i4<45;i4++)
+							{
+								if (!temp.contains(l4.get(i4)))
+								{
+									temp.add(l4.get(i4));
+									for (int i5=0; i5<45;i5++)
+									{
+										if (!temp.contains(i5))
+										{
+											temp.add(l5.get(i5));
+											for (int i6=0; i6<45;i6++)
+											{
+												if (!temp.contains(l6.get(i6)))
+												{
+													temp.add(l6.get(i6));
+													
+													// predict and save to database
+													jDocs.add(new JavaDocument(id, temp.get(0) + " " + temp.get(1) + " " + temp.get(2) + " " + temp.get(3) + " " + temp.get(4) + " " + temp.get(5)));
+													
+													
+													id++;
+													temp.remove(5);
+												}
+											}
+											temp.remove(4);
+										}
+									}
+									temp.remove(3);
+								}
+							}
+							temp.remove(2);
+						}
+					}
+					temp.remove(1);
+				}
+			}
+			temp.remove(0);
+		}
+		
+		// Prepare test documents, which are unlabeled.
+		Dataset<Row> test = spark.createDataFrame(jDocs, JavaDocument.class);
+
+		// Make predictions on test documents. cvModel uses the best model found (lrModel).
+		Dataset<Row> predictions = model.transform(test);
+		for (Row r : predictions.select("id", "text", "probability", "prediction").collectAsList()) {
+			
+			SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
+			
+			/*List<Integer> toNumbers = new ArrayList<Integer>();
+			Collections.copy(temp, new ArrayList<Integer>());*/
+			singlePredictionObject.setNumbers(r.getString(1));
+			singlePredictionObject.setPrediction(r.getDouble(3));
+			singlePredictionObject.setProbability(r.get(2));
+	
+			
+			predictionObjects.add(singlePredictionObject);
+		}
+		
+		obj.setPredictionObjects(predictionObjects);
+		lottoDAO.saveOrUpdateNumberPrediction(obj);
+	}
+
 }

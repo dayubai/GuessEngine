@@ -35,6 +35,7 @@ import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
+import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.entity.OZLottoResult;
@@ -352,6 +353,12 @@ public class OZLottoServiceImpl implements OZLottoService {
 
 		// Run cross-validation, and choose the best set of parameters.
 		return cv.fit(training);
+	}
+
+	@Override
+	public void generateNumberPredictions() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

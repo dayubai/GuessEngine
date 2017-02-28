@@ -12,6 +12,7 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import com.dayu.lotto.dao.LottoDAO;
+import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
 
@@ -56,6 +57,11 @@ public class LottoDB implements LottoDAO {
 
 	public <T extends LottoTicket> T findTicketById(String id, Class<T> entityClass) {
 		return mongoTemplate.findOne(Query.query(Criteria.where("_id").is(id)), entityClass);
+	}
+	
+	public <T extends LottoNumberPrediction> String saveOrUpdateNumberPrediction(T lottoNumberPrediction) {
+		mongoTemplate.save(lottoNumberPrediction);
+		return lottoNumberPrediction.getId();
 	}
 
 }

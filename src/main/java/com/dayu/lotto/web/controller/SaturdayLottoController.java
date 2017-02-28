@@ -59,4 +59,11 @@ public class SaturdayLottoController {
 		}
     	return saturdayLotto();
 	}
+	
+	@RequestMapping(value="/saturdayLotto/predict", method=RequestMethod.GET)
+	public ModelAndView saturdayPredict()
+	{
+		saturdayLottoService.generateNumberPredictions();
+		return saturdayLotto();
+	}
 }
