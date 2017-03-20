@@ -47,6 +47,7 @@ import org.apache.spark.sql.types.StructType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
@@ -58,7 +59,8 @@ import com.dayu.lotto.TestAppConfig;
 @ContextConfiguration(classes = {TestAppConfig.class})
 public class MLibTest implements Serializable {
 
-	private static JavaSparkContext sparkCtx;
+	@Autowired
+	private JavaSparkContext sparkCtx;
 	@Before
 	public void init() throws IllegalArgumentException, IOException {
 		/*System.setProperty("hadoop.home.dir", getClass().getResource("/hadoop").getPath());
@@ -519,7 +521,7 @@ public class MLibTest implements Serializable {
 	}
 	
 	@Test
-	public void testJavaPrefixSpanExample()
+	public void testJahvaPrefixSpanExample()
 	{
 		SparkSession spark = SparkSession
 		.builder()

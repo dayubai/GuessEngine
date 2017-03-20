@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.data.annotation.Id;
 
-public abstract class LottoResult {
+public abstract class LottoResult implements Comparable<LottoResult>{
 	private int drawNumber;
     private Date drawDate;
     private List<Integer> winningNumbers;
@@ -36,4 +36,10 @@ public abstract class LottoResult {
 	public void setDivisions(List<Division> divisions) {
 		this.divisions = divisions;
 	}
+	
+	@Override
+	public int compareTo(LottoResult otherLottoResult) {
+		return drawNumber - otherLottoResult.getDrawNumber();
+	}
+	
 }

@@ -18,9 +18,10 @@
     <input type="text" name="draws" value="3459"/>&nbsp;<input type="text" name="games" value="18"/>&nbsp;<input type="submit"value="New Ticket"/>
     </form>
     
+    <c:if test="${not empty result}">
     <h2>Draw Result ${result.drawNumber}</h2>
     <span>Number:</span>&nbsp;<span>${result.winningNumbers}</span><br/><span>Supplementaries:</span><span>${result.supplementaryNumbers}</span>
-    
+    </c:if>
     
     
     <h2>Ticket History</h2>

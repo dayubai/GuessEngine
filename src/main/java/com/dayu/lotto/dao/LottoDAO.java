@@ -25,4 +25,6 @@ public interface LottoDAO {
 	<T extends LottoTicket> T findTicketById(String id, Class<T> entityClass);
 	
 	<T extends LottoNumberPrediction> String saveOrUpdateNumberPrediction(T lottoNumberPrediction);
+	
+	<T extends Object> void dropDatabase(Class<T> c);
 }

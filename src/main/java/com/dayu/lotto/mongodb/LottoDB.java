@@ -15,6 +15,7 @@ import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
+import com.dayu.lotto.entity.SaturdayLottoResult;
 
 @Component
 public class LottoDB implements LottoDAO {
@@ -62,6 +63,12 @@ public class LottoDB implements LottoDAO {
 	public <T extends LottoNumberPrediction> String saveOrUpdateNumberPrediction(T lottoNumberPrediction) {
 		mongoTemplate.save(lottoNumberPrediction);
 		return lottoNumberPrediction.getId();
+	}
+	
+	public <T extends Object> void dropDatabase(Class<T> c)
+	{
+		if (mongoTemplate.collectionExists(c))
+    		mongoTemplate.dropCollection(c);
 	}
 
 }

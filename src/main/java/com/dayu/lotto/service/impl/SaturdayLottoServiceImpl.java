@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +201,10 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 	}
 
 	public List<SaturdayLottoResult> findLast(int limit) {
-		return lottoDAO.findLastResults(limit, SaturdayLottoResult.class);
+		List<SaturdayLottoResult> result = lottoDAO.findLastResults(limit, SaturdayLottoResult.class);
+		Collections.sort(result);
+		
+		return result;
 	}
 
 	public int numberToPick() {
@@ -476,9 +480,7 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 	private void processPrdiction(SparkSession spark, CrossValidatorModel model)
 	{
 		// Drop SaturdayLottoPrediction collection
-		
-		
-		SaturdayLottoPrediction obj = new SaturdayLottoPrediction();
+		lottoDAO.dropDatabase(SaturdayLottoPrediction.class);
 		
 		List<SinglePredictionObject> predictionObjects = new ArrayList<SinglePredictionObject>();
 		List<JavaDocument> jDocs = new ArrayList<JavaDocument>();
@@ -492,7 +494,7 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 		
 		long id =1;
 		
-		for (int i = 1; i <= 45; i++)
+		/*for (int i = 1; i <= 45; i++)
 		{
 			l1.add(i);
 			l2.add(i);
@@ -502,8 +504,8 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 			l6.add(i);
 		}
 		
-		List<Integer> temp = new ArrayList<Integer>(6);
-		for (int i1 = 0; i1 < 45; i1++)
+		List<Integer> temp = new ArrayList<Integer>(6);*/
+		/*for (int i1 = 0; i1 < 45; i1++)
 		{
 			int n1 = l1.get(i1);
 			temp.add(n1);
@@ -556,19 +558,119 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 				}
 			}
 			temp.remove(0);
+		}*/
+		
+		for (int i = 1; i <= 45; i++)
+		{
+			l1.add(i);
+			l2.add(i);
+			l3.add(i);
+			l4.add(i);
+			l5.add(i);
+			l6.add(i);
 		}
 		
+		List<Integer> temp = new ArrayList<Integer>(6);
+		for (int i1 = 0; i1 < 40; i1++)
+		{
+			int n1 = l1.get(i1);
+			
+			// remove n1 from other list
+			l2.remove(Integer.valueOf(n1));
+			l3.remove(Integer.valueOf(n1));
+			l4.remove(Integer.valueOf(n1));
+			l5.remove(Integer.valueOf(n1));
+			l6.remove(Integer.valueOf(n1));
+			
+			
+			temp.add(n1);
+			
+			for (int i2 = 0; i2<l2.size(); i2++)
+			{
+				int n2 = l2.get(i2);
+				if (n2 > n1 && !temp.contains(n2))
+				{
+					temp.add(n2);
+					
+					for (int i3 =0; i3<l3.size(); i3++)
+					{
+						int n3 = l3.get(i3);
+						if (n3 > n2 && !temp.contains(n3))
+						{
+							temp.add(n3);
+							for (int i4=0;i4<l4.size();i4++)
+							{
+								int n4 = l4.get(i4);
+								if (n4 > n3 && !temp.contains(n4))
+								{
+									temp.add(n4);
+									for (int i5=0; i5<l5.size();i5++)
+									{
+										int n5 = l5.get(i5);
+										if (n5 > n4 && !temp.contains(n5))
+										{
+											temp.add(n5);
+											for (int i6=0; i6<l6.size();i6++)
+											{
+												int n6 = l6.get(i6);
+												if (n6 > n5 && !temp.contains(n6))
+												{
+													temp.add(n6);
+
+													jDocs.add(new JavaDocument(id, temp.get(0) + " " + temp.get(1) + " " + temp.get(2) + " " + temp.get(3) + " " + temp.get(4) + " " + temp.get(5)));
+													// Prepare test documents, which are unlabeled.
+													Dataset<Row> test = spark.createDataFrame(jDocs, JavaDocument.class);
+
+													// Make predictions on test documents. cvModel uses the best model found (lrModel).
+													Dataset<Row> predictions = model.transform(test);
+													for (Row r : predictions.select("id", "text", "probability", "prediction").collectAsList()) {
+														
+														SaturdayLottoPrediction obj = new SaturdayLottoPrediction();
+														SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
+														
+														singlePredictionObject.setNumbers(r.getString(1));
+														singlePredictionObject.setPrediction(r.getDouble(3));
+														singlePredictionObject.setProbability(r.get(2));
+												
+														
+														obj.setPredictionObjects(predictionObjects);
+														lottoDAO.saveOrUpdateNumberPrediction(obj);
+														
+													}
+												
+													
+													id++;
+													
+													temp.remove(5);
+												}
+											}
+											temp.remove(4);
+										}
+									}
+									temp.remove(3);
+								}
+							}
+							temp.remove(2);
+						}
+					}
+					temp.remove(1);
+				}
+			}
+			temp.remove(0);
+		}
+		
+		
 		// Prepare test documents, which are unlabeled.
-		Dataset<Row> test = spark.createDataFrame(jDocs, JavaDocument.class);
+		/*Dataset<Row> test = spark.createDataFrame(jDocs, JavaDocument.class);
 
 		// Make predictions on test documents. cvModel uses the best model found (lrModel).
 		Dataset<Row> predictions = model.transform(test);
 		for (Row r : predictions.select("id", "text", "probability", "prediction").collectAsList()) {
 			
-			SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
+			//SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
 			
-			/*List<Integer> toNumbers = new ArrayList<Integer>();
-			Collections.copy(temp, new ArrayList<Integer>());*/
+			List<Integer> toNumbers = new ArrayList<Integer>();
+			Collections.copy(temp, new ArrayList<Integer>());
 			singlePredictionObject.setNumbers(r.getString(1));
 			singlePredictionObject.setPrediction(r.getDouble(3));
 			singlePredictionObject.setProbability(r.get(2));
@@ -577,8 +679,8 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 			predictionObjects.add(singlePredictionObject);
 		}
 		
-		obj.setPredictionObjects(predictionObjects);
-		lottoDAO.saveOrUpdateNumberPrediction(obj);
+		//obj.setPredictionObjects(predictionObjects);
+		lottoDAO.saveOrUpdateNumberPrediction(obj);*/
 	}
 
 }
