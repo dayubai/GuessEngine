@@ -14,28 +14,55 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.classification.RandomForestClassificationModel;
+import org.apache.spark.ml.classification.RandomForestClassifier;
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
+import org.apache.spark.ml.evaluation.MulticlassClassificationEvaluator;
+import org.apache.spark.ml.evaluation.RegressionEvaluator;
 import org.apache.spark.ml.feature.HashingTF;
+import org.apache.spark.ml.feature.IndexToString;
+import org.apache.spark.ml.feature.StringIndexer;
+import org.apache.spark.ml.feature.StringIndexerModel;
 import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.ml.feature.VectorAssembler;
+import org.apache.spark.ml.feature.VectorIndexer;
+import org.apache.spark.ml.feature.VectorIndexerModel;
+import org.apache.spark.ml.linalg.VectorUDT;
+import org.apache.spark.ml.linalg.Vectors;
 import org.apache.spark.ml.param.ParamMap;
+import org.apache.spark.ml.regression.RandomForestRegressionModel;
+import org.apache.spark.ml.regression.RandomForestRegressor;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
+import org.apache.spark.api.java.function.Function;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -46,6 +73,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import scala.Tuple2;
 
 import com.dayu.lotto.TestAppConfig;
 import com.dayu.lotto.dao.LottoDAO;
@@ -442,12 +471,12 @@ public class LottoTest {
 		List<SaturdayLottoResult> results = saturdayLottoService.findLast(50);
 		Map<Integer, List<ARModel>> arModels = new TreeMap<Integer, List<ARModel>>();
 
-		Map<Integer, Queue<Boolean>> resultMap = new TreeMap<Integer, Queue<Boolean>>();
+		Map<Integer, Queue<Double>> resultMap = new TreeMap<Integer, Queue<Double>>();
 		for (int i=1; i<=45;i++)
 		{
 			arModels.put(i, new ArrayList<ARModel>());
 
-			Queue<Boolean> q = new ArrayBlockingQueue<Boolean>(historyCapacity);
+			Queue<Double> q = new ArrayBlockingQueue<Double>(historyCapacity);
 			resultMap.put(i, q);
 		}
 
@@ -463,10 +492,10 @@ public class LottoTest {
 				{
 					//generate model
 					ARModel arModel = new ARModel();
-					arModel.setLabel(winningNumbers.contains(i));
-					Boolean[] arr = new Boolean[historyCapacity];
+					arModel.setLabel(winningNumbers.contains(i)?1.0:0.0);
+					Double[] arr = new Double[historyCapacity];
 					resultMap.get(i).toArray(arr);
-					
+
 					arModel.setTrainingSet(arr);
 
 					arModels.get(i).add(arModel);
@@ -476,19 +505,233 @@ public class LottoTest {
 				}
 
 				// insert new result
-				resultMap.get(i).offer(winningNumbers.contains(i));
+				resultMap.get(i).offer(winningNumbers.contains(i)?1.0:0.0);
 			}
 
 		}
 
+		Map<Integer, ARModel> testDataMap=new TreeMap<Integer,ARModel>();
+
 		//print
-        for (int key: arModels.keySet())
-        {
-        	for (ARModel armodel: arModels.get(key))
-        	{
-        		System.out.println(key + ": " + armodel.toString());
-        	}
-        	
-        }
+		for (int key: arModels.keySet())
+		{
+			ARModel testData = new ARModel();
+			Double[] arr = new Double[historyCapacity];
+			resultMap.get(key).toArray(arr);
+
+			testData.setLabel(1);
+			testData.setTrainingSet(arr);
+
+
+			testDataMap.put(key, testData);
+
+			for (ARModel armodel: arModels.get(key))
+			{
+				System.out.println(key + ": " + armodel.toString());
+			}
+
+		}
+
+
+		/**
+		 **  ML Model
+		 */
+		//Build RandomForrest Model
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("RandomForestClassifierExample")
+				.getOrCreate();
+
+
+
+		// Create some vector data; also works for sparse vectors
+		List<Row> rows = new ArrayList<Row>();
+		for (ARModel arModel : arModels.get(1))
+		{	
+			rows.add(RowFactory.create(arModel.getLabel(), Vectors.dense(ArrayUtils.toPrimitive( arModel.getTrainingSet()))));
+		}
+
+		List<StructField> fields = new ArrayList<>();
+		fields.add(DataTypes.createStructField("label", DataTypes.DoubleType, false));
+		fields.add(DataTypes.createStructField("features", new VectorUDT(), false));
+
+		StructType schema = DataTypes.createStructType(fields);
+
+		Dataset<Row> data = spark.createDataFrame(rows, schema);
+
+		Dataset<Row> test = spark.createDataFrame(Arrays.asList(RowFactory.create(testDataMap.get(1).getLabel(), Vectors.dense(ArrayUtils.toPrimitive( testDataMap.get(1).getTrainingSet())))),schema);
+
+		// Index labels, adding metadata to the label column.
+		// Fit on whole dataset to include all labels in index.
+		StringIndexerModel labelIndexer = new StringIndexer()
+		.setInputCol("label")
+		.setOutputCol("indexedLabel")
+		.fit(data);
+
+		// Automatically identify categorical features, and index them.
+		// Set maxCategories so features with > 4 distinct values are treated as continuous.
+
+		VectorIndexerModel featureIndexer = new VectorIndexer()
+		.setInputCol("features")
+		.setOutputCol("indexedFeatures")
+		.setMaxCategories(5)
+		.fit(data);
+
+		// Train a RandomForest model.
+		RandomForestClassifier rf = new RandomForestClassifier()
+		.setLabelCol("indexedLabel")
+		.setFeaturesCol("indexedFeatures");
+
+		// Convert indexed labels back to original labels.
+		IndexToString labelConverter = new IndexToString()
+		.setInputCol("prediction")
+		.setOutputCol("predictedLabel")
+		.setLabels(labelIndexer.labels());
+
+		// Chain indexers and forest in a Pipeline
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {labelIndexer, featureIndexer, rf, labelConverter});
+
+		// Train model. This also runs the indexers.
+		PipelineModel model = pipeline.fit(data);
+
+		RandomForestClassificationModel rfModel = (RandomForestClassificationModel)(model.stages()[2]);
+		System.out.println("Learned classification forest model:\n" + rfModel.toDebugString());
+
+
+		// Make predictions.
+		Dataset<Row> predictions = model.transform(test);
+
+		// Select example rows to display.
+		predictions.select("predictedLabel", "label", "features").show(5);
+
+		spark.stop();
+	}
+
+	@Test
+	public void testLottoModelDecisionTreeClassificationExample(){
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("JavaRandomForestClassifierExample")
+				.getOrCreate();
+
+		// $example on$
+		// Load and parse the data file, converting it to a DataFrame.
+		Dataset<Row> data = spark.read().format("libsvm").load(getClass().getResource("/data/sample_libsvm_data.txt").getPath());
+
+		data.select("features").show(20);
+		// Index labels, adding metadata to the label column.
+		// Fit on whole dataset to include all labels in index.
+		StringIndexerModel labelIndexer = new StringIndexer()
+		.setInputCol("label")
+		.setOutputCol("indexedLabel")
+		.fit(data);
+		// Automatically identify categorical features, and index them.
+		// Set maxCategories so features with > 4 distinct values are treated as continuous.
+		VectorIndexerModel featureIndexer = new VectorIndexer()
+		.setInputCol("features")
+		.setOutputCol("indexedFeatures")
+		.setMaxCategories(4)
+		.fit(data);
+
+		// Split the data into training and test sets (30% held out for testing)
+		Dataset<Row>[] splits = data.randomSplit(new double[] {0.7, 0.3});
+		Dataset<Row> trainingData = splits[0];
+		Dataset<Row> testData = splits[1];
+
+		// Train a RandomForest model.
+		RandomForestClassifier rf = new RandomForestClassifier()
+		.setLabelCol("indexedLabel")
+		.setFeaturesCol("indexedFeatures");
+
+		// Convert indexed labels back to original labels.
+		IndexToString labelConverter = new IndexToString()
+		.setInputCol("prediction")
+		.setOutputCol("predictedLabel")
+		.setLabels(labelIndexer.labels());
+
+		// Chain indexers and forest in a Pipeline
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {labelIndexer, featureIndexer, rf, labelConverter});
+
+		// Train model. This also runs the indexers.
+		PipelineModel model = pipeline.fit(trainingData);
+
+		// Make predictions.
+		Dataset<Row> predictions = model.transform(testData);
+
+		// Select example rows to display.
+		predictions.select("predictedLabel", "label", "features").show(5);
+
+		// Select (prediction, true label) and compute test error
+		MulticlassClassificationEvaluator evaluator = new MulticlassClassificationEvaluator()
+		.setLabelCol("indexedLabel")
+		.setPredictionCol("prediction")
+		.setMetricName("accuracy");
+		double accuracy = evaluator.evaluate(predictions);
+		System.out.println("Test Error = " + (1.0 - accuracy));
+
+		RandomForestClassificationModel rfModel = (RandomForestClassificationModel)(model.stages()[2]);
+		System.out.println("Learned classification forest model:\n" + rfModel.toDebugString());
+		// $example off
+
+		spark.stop();
+	}
+
+	@Test
+	public void testLottoModelDecisionTreeRegressionExample(){
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("JavaRandomForestRegressorExample")
+				.getOrCreate();
+
+		// $example on$
+		// Load and parse the data file, converting it to a DataFrame.
+		Dataset<Row> data = spark.read().format("libsvm").load(getClass().getResource("/data/sample_libsvm_data.txt").getPath());
+
+		// Automatically identify categorical features, and index them.
+		// Set maxCategories so features with > 4 distinct values are treated as continuous.
+		VectorIndexerModel featureIndexer = new VectorIndexer()
+		.setInputCol("features")
+		.setOutputCol("indexedFeatures")
+		.setMaxCategories(4)
+		.fit(data);
+
+		// Split the data into training and test sets (30% held out for testing)
+		Dataset<Row>[] splits = data.randomSplit(new double[] {0.7, 0.3});
+		Dataset<Row> trainingData = splits[0];
+		Dataset<Row> testData = splits[1];
+
+		// Train a RandomForest model.
+		RandomForestRegressor rf = new RandomForestRegressor()
+		.setLabelCol("label")
+		.setFeaturesCol("indexedFeatures");
+
+		// Chain indexer and forest in a Pipeline
+		Pipeline pipeline = new Pipeline()
+		.setStages(new PipelineStage[] {featureIndexer, rf});
+
+		// Train model. This also runs the indexer.
+		PipelineModel model = pipeline.fit(trainingData);
+
+		// Make predictions.
+		Dataset<Row> predictions = model.transform(testData);
+
+		// Select example rows to display.
+		predictions.select("prediction", "label", "features").show(5);
+
+		// Select (prediction, true label) and compute test error
+		RegressionEvaluator evaluator = new RegressionEvaluator()
+		.setLabelCol("label")
+		.setPredictionCol("prediction")
+		.setMetricName("rmse");
+		double rmse = evaluator.evaluate(predictions);
+		System.out.println("Root Mean Squared Error (RMSE) on test data = " + rmse);
+
+		RandomForestRegressionModel rfModel = (RandomForestRegressionModel)(model.stages()[1]);
+		System.out.println("Learned regression forest model:\n" + rfModel.toDebugString());
+		// $example off$
+
+		spark.stop();
 	}
 }

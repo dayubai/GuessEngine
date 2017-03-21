@@ -2,19 +2,20 @@ package com.dayu.lotto.entity;
 
 public class ARModel {
 
-	private Boolean label;
-	private Boolean[] trainingSet;
+	private double label;
 	
-	public Boolean getLabel() {
+	private Double[] trainingSet;
+	
+	public double getLabel() {
 		return label;
 	}
-	public void setLabel(Boolean label) {
+	public void setLabel(double label) {
 		this.label = label;
 	}
-	public Boolean[] getTrainingSet() {
+	public Double[] getTrainingSet() {
 		return trainingSet;
 	}
-	public void setTrainingSet(Boolean[] trainingSet) {
+	public void setTrainingSet(Double[] trainingSet) {
 		this.trainingSet = trainingSet;
 	}
 	
@@ -24,7 +25,7 @@ public class ARModel {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Label: " + label + ", [");
 		
-		for (Boolean b: trainingSet)
+		for (double b: trainingSet)
 		{
 			sb.append(b + ",");
 		}

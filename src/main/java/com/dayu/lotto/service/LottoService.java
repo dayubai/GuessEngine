@@ -29,4 +29,5 @@ public interface LottoService  {
     List<JavaLabeledDocument> buildTrainingData(int max);
     
     void generateNumberPredictions ();
+    
 }
