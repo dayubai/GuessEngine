@@ -465,8 +465,15 @@ public class LottoTest {
 	}*/
 
 	@Test
-	public void testBuildARModel()
+	public void testBuildARModel() throws IOException
 	{
+
+		String filename = getClass().getResource("/results").getPath() + "/ARModel.csv";
+		
+		FileWriter fw = new FileWriter(filename, true);
+		PrintWriter pw = new PrintWriter(fw);
+		
+		
 		int historyCapacity = 5;
 		List<SaturdayLottoResult> results = saturdayLottoService.findLast(50);
 		Map<Integer, List<ARModel>> arModels = new TreeMap<Integer, List<ARModel>>();
@@ -525,10 +532,10 @@ public class LottoTest {
 
 			testDataMap.put(key, testData);
 
-			for (ARModel armodel: arModels.get(key))
+			/*for (ARModel armodel: arModels.get(key))
 			{
 				System.out.println(key + ": " + armodel.toString());
-			}
+			}*/
 
 		}
 
@@ -542,69 +549,76 @@ public class LottoTest {
 				.appName("RandomForestClassifierExample")
 				.getOrCreate();
 
+		for (int trainingNumber = 1; trainingNumber <=45; trainingNumber++) 
+		{
 
 
-		// Create some vector data; also works for sparse vectors
-		List<Row> rows = new ArrayList<Row>();
-		for (ARModel arModel : arModels.get(1))
-		{	
-			rows.add(RowFactory.create(arModel.getLabel(), Vectors.dense(ArrayUtils.toPrimitive( arModel.getTrainingSet()))));
+
+			// Create some vector data; also works for sparse vectors
+			List<Row> rows = new ArrayList<Row>();
+			for (ARModel arModel : arModels.get(trainingNumber))
+			{	
+				rows.add(RowFactory.create(arModel.getLabel(), Vectors.dense(ArrayUtils.toPrimitive( arModel.getTrainingSet()))));
+			}
+
+			List<StructField> fields = new ArrayList<>();
+			fields.add(DataTypes.createStructField("label", DataTypes.DoubleType, false));
+			fields.add(DataTypes.createStructField("features", new VectorUDT(), false));
+
+			StructType schema = DataTypes.createStructType(fields);
+
+			Dataset<Row> data = spark.createDataFrame(rows, schema);
+
+			Dataset<Row> test = spark.createDataFrame(Arrays.asList(RowFactory.create(testDataMap.get(trainingNumber).getLabel(), Vectors.dense(ArrayUtils.toPrimitive( testDataMap.get(1).getTrainingSet())))),schema);
+
+			// Index labels, adding metadata to the label column.
+			// Fit on whole dataset to include all labels in index.
+			StringIndexerModel labelIndexer = new StringIndexer()
+			.setInputCol("label")
+			.setOutputCol("indexedLabel")
+			.fit(data);
+
+			// Automatically identify categorical features, and index them.
+			// Set maxCategories so features with > 4 distinct values are treated as continuous.
+
+			VectorIndexerModel featureIndexer = new VectorIndexer()
+			.setInputCol("features")
+			.setOutputCol("indexedFeatures")
+			.setMaxCategories(3)
+			.fit(data);
+
+			// Train a RandomForest model.
+			RandomForestClassifier rf = new RandomForestClassifier()
+			.setLabelCol("indexedLabel")
+			.setFeaturesCol("indexedFeatures");
+
+			// Convert indexed labels back to original labels.
+			IndexToString labelConverter = new IndexToString()
+			.setInputCol("prediction")
+			.setOutputCol("predictedLabel")
+			.setLabels(labelIndexer.labels());
+
+			// Chain indexers and forest in a Pipeline
+			Pipeline pipeline = new Pipeline()
+			.setStages(new PipelineStage[] {labelIndexer, featureIndexer, rf, labelConverter});
+
+			// Train model. This also runs the indexers.
+			PipelineModel model = pipeline.fit(data);
+
+			/*RandomForestClassificationModel rfModel = (RandomForestClassificationModel)(model.stages()[2]);
+		System.out.println("Learned classification forest model:\n" + rfModel.toDebugString());*/
+
+
+			// Make predictions.
+			Dataset<Row> predictions = model.transform(test);
+
+			// Select example rows to display.
+			Row row = predictions.select("predictedLabel", "label","probability", "features").first();
+ 
+			pw.println(trainingNumber + ", " + row.get(0) + " " + row.get(2));
+			pw.flush();
+
 		}
-
-		List<StructField> fields = new ArrayList<>();
-		fields.add(DataTypes.createStructField("label", DataTypes.DoubleType, false));
-		fields.add(DataTypes.createStructField("features", new VectorUDT(), false));
-
-		StructType schema = DataTypes.createStructType(fields);
-
-		Dataset<Row> data = spark.createDataFrame(rows, schema);
-
-		Dataset<Row> test = spark.createDataFrame(Arrays.asList(RowFactory.create(testDataMap.get(1).getLabel(), Vectors.dense(ArrayUtils.toPrimitive( testDataMap.get(1).getTrainingSet())))),schema);
-
-		// Index labels, adding metadata to the label column.
-		// Fit on whole dataset to include all labels in index.
-		StringIndexerModel labelIndexer = new StringIndexer()
-		.setInputCol("label")
-		.setOutputCol("indexedLabel")
-		.fit(data);
-
-		// Automatically identify categorical features, and index them.
-		// Set maxCategories so features with > 4 distinct values are treated as continuous.
-
-		VectorIndexerModel featureIndexer = new VectorIndexer()
-		.setInputCol("features")
-		.setOutputCol("indexedFeatures")
-		.setMaxCategories(5)
-		.fit(data);
-
-		// Train a RandomForest model.
-		RandomForestClassifier rf = new RandomForestClassifier()
-		.setLabelCol("indexedLabel")
-		.setFeaturesCol("indexedFeatures");
-
-		// Convert indexed labels back to original labels.
-		IndexToString labelConverter = new IndexToString()
-		.setInputCol("prediction")
-		.setOutputCol("predictedLabel")
-		.setLabels(labelIndexer.labels());
-
-		// Chain indexers and forest in a Pipeline
-		Pipeline pipeline = new Pipeline()
-		.setStages(new PipelineStage[] {labelIndexer, featureIndexer, rf, labelConverter});
-
-		// Train model. This also runs the indexers.
-		PipelineModel model = pipeline.fit(data);
-
-		RandomForestClassificationModel rfModel = (RandomForestClassificationModel)(model.stages()[2]);
-		System.out.println("Learned classification forest model:\n" + rfModel.toDebugString());
-
-
-		// Make predictions.
-		Dataset<Row> predictions = model.transform(test);
-
-		// Select example rows to display.
-		predictions.select("predictedLabel", "label", "features").show(5);
-
 		spark.stop();
 	}
 
