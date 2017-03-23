@@ -13,13 +13,26 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.spark.ml.Pipeline;
+import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.LogisticRegression;
+import org.apache.spark.ml.classification.RandomForestClassifier;
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
 import org.apache.spark.ml.feature.HashingTF;
+import org.apache.spark.ml.feature.IndexToString;
+import org.apache.spark.ml.feature.StringIndexer;
+import org.apache.spark.ml.feature.StringIndexerModel;
 import org.apache.spark.ml.feature.Tokenizer;
+import org.apache.spark.ml.feature.VectorIndexer;
+import org.apache.spark.ml.feature.VectorIndexerModel;
+import org.apache.spark.ml.linalg.VectorUDT;
+import org.apache.spark.ml.linalg.Vectors;
 import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
@@ -27,7 +40,11 @@ import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
+import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +54,7 @@ import com.dayu.lotto.algorithm.JavaDocument;
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
+import com.dayu.lotto.entity.ARModel;
 import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
@@ -48,10 +66,11 @@ import com.dayu.lotto.entity.SaturdayLottoTicket;
 import com.dayu.lotto.service.SaturdayLottoService;
 
 @Service
-public class SaturdayLottoServiceImpl implements SaturdayLottoService {
+public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLottoResult> implements SaturdayLottoService {
 
 	private static Logger log = LoggerFactory.getLogger(SaturdayLottoServiceImpl.class);
     private static final int SAMPLE = 15;
+    
 	
 	@Autowired
 	private LottoDAO lottoDAO;
@@ -200,6 +219,7 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 		}
 	}
 
+	@Override
 	public List<SaturdayLottoResult> findLast(int limit) {
 		List<SaturdayLottoResult> result = lottoDAO.findLastResults(limit, SaturdayLottoResult.class);
 		Collections.sort(result);
@@ -494,72 +514,6 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 		
 		long id =1;
 		
-		/*for (int i = 1; i <= 45; i++)
-		{
-			l1.add(i);
-			l2.add(i);
-			l3.add(i);
-			l4.add(i);
-			l5.add(i);
-			l6.add(i);
-		}
-		
-		List<Integer> temp = new ArrayList<Integer>(6);*/
-		/*for (int i1 = 0; i1 < 45; i1++)
-		{
-			int n1 = l1.get(i1);
-			temp.add(n1);
-			
-			for (int i2 = 0; i2<45; i2++)
-			{
-				if (!temp.contains(l2.get(i2)))
-				{
-					temp.add(l2.get(i2));
-					
-					for (int i3 =0; i3<45; i3++)
-					{
-						if (!temp.contains(l3.get(i3)))
-						{
-							temp.add(l3.get(i3));
-							for (int i4=0;i4<45;i4++)
-							{
-								if (!temp.contains(l4.get(i4)))
-								{
-									temp.add(l4.get(i4));
-									for (int i5=0; i5<45;i5++)
-									{
-										if (!temp.contains(i5))
-										{
-											temp.add(l5.get(i5));
-											for (int i6=0; i6<45;i6++)
-											{
-												if (!temp.contains(l6.get(i6)))
-												{
-													temp.add(l6.get(i6));
-													
-													// predict and save to database
-													jDocs.add(new JavaDocument(id, temp.get(0) + " " + temp.get(1) + " " + temp.get(2) + " " + temp.get(3) + " " + temp.get(4) + " " + temp.get(5)));
-													
-													
-													id++;
-													temp.remove(5);
-												}
-											}
-											temp.remove(4);
-										}
-									}
-									temp.remove(3);
-								}
-							}
-							temp.remove(2);
-						}
-					}
-					temp.remove(1);
-				}
-			}
-			temp.remove(0);
-		}*/
-		
 		for (int i = 1; i <= 45; i++)
 		{
 			l1.add(i);
@@ -682,5 +636,90 @@ public class SaturdayLottoServiceImpl implements SaturdayLottoService {
 		//obj.setPredictionObjects(predictionObjects);
 		lottoDAO.saveOrUpdateNumberPrediction(obj);*/
 	}
+	
+	
+	
+    public void runForrestRandomPrediction()
+    {
+        // build model	
+    	super.buildForrestRandomModel();
+    	
+    	/**
+		 **  ML Model
+		 */
+		//Build RandomForrest Model
+		SparkSession spark = SparkSession
+				.builder()
+				.appName("RandomForestClassifierExample")
+				.getOrCreate();
 
+		
+		
+		for (int trainingNumber = 1; trainingNumber <=pool(); trainingNumber++) 
+		{
+
+
+			// Create some vector data; also works for sparse vectors
+			List<Row> rows = new ArrayList<Row>();
+			for (ARModel arModel : super.frTrainingData.get(trainingNumber))
+			{	
+				rows.add(RowFactory.create(arModel.getLabel(), Vectors.dense(ArrayUtils.toPrimitive( arModel.getTrainingSet()))));
+			}
+
+			List<StructField> fields = new ArrayList<>();
+			fields.add(DataTypes.createStructField("label", DataTypes.DoubleType, false));
+			fields.add(DataTypes.createStructField("features", new VectorUDT(), false));
+
+			StructType schema = DataTypes.createStructType(fields);
+
+			Dataset<Row> data = spark.createDataFrame(rows, schema);
+
+			Dataset<Row> test = spark.createDataFrame(Arrays.asList(RowFactory.create(super.frTestData.get(trainingNumber).getLabel(), Vectors.dense(ArrayUtils.toPrimitive( super.frTestData.get(trainingNumber).getTrainingSet())))),schema);
+
+			// Index labels, adding metadata to the label column.
+			// Fit on whole dataset to include all labels in index.
+			StringIndexerModel labelIndexer = new StringIndexer()
+			.setInputCol("label")
+			.setOutputCol("indexedLabel")
+			.fit(data);
+
+			// Automatically identify categorical features, and index them.
+			// Set maxCategories so features with > 4 distinct values are treated as continuous.
+
+			VectorIndexerModel featureIndexer = new VectorIndexer()
+			.setInputCol("features")
+			.setOutputCol("indexedFeatures")
+			.setMaxCategories(3)
+			.fit(data);
+
+			// Train a RandomForest model.
+			RandomForestClassifier rf = new RandomForestClassifier()
+			.setLabelCol("indexedLabel")
+			.setFeaturesCol("indexedFeatures");
+
+			// Convert indexed labels back to original labels.
+			IndexToString labelConverter = new IndexToString()
+			.setInputCol("prediction")
+			.setOutputCol("predictedLabel")
+			.setLabels(labelIndexer.labels());
+
+			// Chain indexers and forest in a Pipeline
+			Pipeline pipeline = new Pipeline()
+			.setStages(new PipelineStage[] {labelIndexer, featureIndexer, rf, labelConverter});
+
+			// Train model. This also runs the indexers.
+			PipelineModel model = pipeline.fit(data);
+
+			// Make predictions.
+			Dataset<Row> predictions = model.transform(test);
+
+			// Select example rows to display.
+/*			Row row = predictions.select("predictedLabel", "label","probability", "features").first();
+ 
+			pw.println(trainingNumber + ", " + row.get(0) + " " + row.get(2));
+			pw.flush();*/
+
+		}
+		spark.stop();
+    }
 }

@@ -208,17 +208,6 @@ public class OZLottoTest {
 		// $example on$
 		// Prepare training documents, which are labeled.
 		Dataset<Row> training = spark.createDataFrame(ozLottoService.buildTrainingData(20), JavaLabeledDocument.class);
-				/*List<Row> dataTraining = Arrays.asList(
-						RowFactory.create(1.0, Vectors.dense(0.0, 1.1, 0.1)),
-						RowFactory.create(0.0, Vectors.dense(2.0, 1.0, -1.0)),
-						RowFactory.create(0.0, Vectors.dense(2.0, 1.3, 1.0)),
-						RowFactory.create(1.0, Vectors.dense(0.0, 1.2, -0.5))
-						);
-				StructType schema = new StructType(new StructField[]{
-						new StructField("label", DataTypes.DoubleType, false, Metadata.empty()),
-						new StructField("features", new VectorUDT(), false, Metadata.empty())
-				});
-				Dataset<Row> training = spark.createDataFrame(dataTraining, schema);*/
 
 		// Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
 		Tokenizer tokenizer = new Tokenizer()

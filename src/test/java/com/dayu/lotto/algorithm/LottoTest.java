@@ -386,38 +386,6 @@ public class LottoTest {
 			temp.remove(0);
 		}
 
-
-		/*int[] array = {1,2,3,4,5,6};
-
-		pw.println(array[0] + " " + array[1] + " " + array[2] + " " + array[3] + " " + array[4] + " " + array[5]);
-		 */
-		/*for (int k= 0; k < 40; k++)
-		{
-			int[] arr = new int[] {1+k, 2+k,3+k,4+k,5+k,6+k};
-			pw.println(arr[0] + " " + arr[1] + " " + arr[2] + " " + arr[3] + " " + arr[4] + " " + arr[5]);
-
-			for (int i = 0; i<arr.length; i++)
-			{
-				int[] temp = new int[6];
-				temp[0]=arr[0];
-				temp[1]=arr[1];
-				temp[2]=arr[2];
-				temp[3]=arr[3];
-				temp[4]=arr[4];
-				temp[5]=arr[5];
-
-
-
-				for (int j=7+k; j<46; j++)
-				{
-					temp[i] = j;
-
-					pw.println(temp[0] + " " + temp[1] + " " + temp[2] + " " + temp[3] + " " + temp[4] + " " + temp[5]);
-				}
-
-			}
-		}*/
-
 		pw.close();
 	}
 
@@ -532,10 +500,9 @@ public class LottoTest {
 
 			testDataMap.put(key, testData);
 
-			/*for (ARModel armodel: arModels.get(key))
-			{
-				System.out.println(key + ": " + armodel.toString());
-			}*/
+			
+				System.out.println(key + ": " + testDataMap.get(key).toString());
+		
 
 		}
 
@@ -549,7 +516,7 @@ public class LottoTest {
 				.appName("RandomForestClassifierExample")
 				.getOrCreate();
 
-		for (int trainingNumber = 1; trainingNumber <=45; trainingNumber++) 
+		for (int trainingNumber = 1; trainingNumber <= 45; trainingNumber++) 
 		{
 
 
@@ -569,7 +536,7 @@ public class LottoTest {
 
 			Dataset<Row> data = spark.createDataFrame(rows, schema);
 
-			Dataset<Row> test = spark.createDataFrame(Arrays.asList(RowFactory.create(testDataMap.get(trainingNumber).getLabel(), Vectors.dense(ArrayUtils.toPrimitive( testDataMap.get(1).getTrainingSet())))),schema);
+			Dataset<Row> test = spark.createDataFrame(Arrays.asList(RowFactory.create(testDataMap.get(trainingNumber).getLabel(), Vectors.dense(ArrayUtils.toPrimitive( testDataMap.get(trainingNumber).getTrainingSet())))),schema);
 
 			// Index labels, adding metadata to the label column.
 			// Fit on whole dataset to include all labels in index.
