@@ -14,10 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.OZLottoTicket;
-import com.dayu.lotto.entity.SaturdayLottoResult;
-import com.dayu.lotto.entity.SaturdayLottoTicket;
 import com.dayu.lotto.service.LottoService;
-import com.dayu.lotto.service.OZLottoService;
 
 @Controller
 public class OZLottoController {
@@ -63,5 +60,20 @@ public class OZLottoController {
 			e.printStackTrace();
 		}
     	return ozLotto();
+	}
+	
+	@RequestMapping(value="/ozLotto/rfpredict/run", method=RequestMethod.POST)
+	public ModelAndView ozLottoRfPredict(@RequestParam("draw") String draw)
+	{
+		ModelAndView modelAndView = new ModelAndView("ozLotto/rfpredict/draw");	
+		ozLottoService.generateNumberPredictions(draw);
+    	return modelAndView;
+	}
+	
+	@RequestMapping(value="/ozLotto/rfpredict", method=RequestMethod.GET)
+	public ModelAndView ozLottoRfPredictView(@RequestParam("draw") String draw)
+	{
+		ModelAndView modelAndView = new ModelAndView("ozLotto/rfpredict");	
+    	return modelAndView;
 	}
 }

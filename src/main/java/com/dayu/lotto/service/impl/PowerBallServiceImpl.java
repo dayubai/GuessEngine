@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,9 @@ import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
-import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.entity.PowerBallResult;
 import com.dayu.lotto.entity.PowerBallTicket;
-import com.dayu.lotto.service.PowerBallService;
 
 @Service
 public class PowerBallServiceImpl extends AbstractLottoService<PowerBallTicket, PowerBallResult> {

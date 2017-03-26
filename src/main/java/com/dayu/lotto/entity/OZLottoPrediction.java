@@ -2,12 +2,13 @@ package com.dayu.lotto.entity;
 
 import java.util.List;
 
-public class SaturdayLottoPrediction extends LottoNumberPrediction {
-    private List<SinglePredictionObject> predictionObjects;
+
+public class OZLottoPrediction extends LottoNumberPrediction {
+	private List<SinglePredictionObject> predictionObjects;
 
 	@Override
 	public String getLottoName() {
-		return "SaturdayLotto";
+		return "OZLotto";
 	}
 
 

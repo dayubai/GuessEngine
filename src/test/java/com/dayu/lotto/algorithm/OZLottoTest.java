@@ -56,9 +56,8 @@ import com.dayu.lotto.TestAppConfig;
 import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.OZLottoTicket;
-import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
-import com.dayu.lotto.service.OZLottoService;
+import com.dayu.lotto.service.LottoService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestAppConfig.class})
@@ -67,7 +66,7 @@ public class OZLottoTest {
 	private MongoTemplate mongoTemplate;
 
 	@Autowired
-	private OZLottoService ozLottoService;
+	private LottoService<OZLottoTicket, OZLottoResult> ozLottoService;
 
 	private static Logger log = LoggerFactory.getLogger(OZLottoTest.class);
 	

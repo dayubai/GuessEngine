@@ -9,8 +9,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -24,12 +22,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.dayu.lotto.TestAppConfig;
-import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.PowerBallResult;
 import com.dayu.lotto.entity.PowerBallTicket;
-import com.dayu.lotto.entity.SaturdayLottoResult;
-import com.dayu.lotto.entity.SaturdayLottoTicket;
-import com.dayu.lotto.service.PowerBallService;
+import com.dayu.lotto.service.LottoService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestAppConfig.class})
@@ -38,7 +33,7 @@ public class PowerballTest {
 	private MongoTemplate mongoTemplate;
 	
 	@Autowired
-	private PowerBallService powerBallService;
+	private LottoService<PowerBallTicket, PowerBallResult> powerBallService;
 	
 	private static Logger log = LoggerFactory.getLogger(PowerballTest.class);
 	

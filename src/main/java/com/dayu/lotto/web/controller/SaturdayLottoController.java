@@ -15,7 +15,6 @@ import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
 import com.dayu.lotto.service.LottoService;
-import com.dayu.lotto.service.SaturdayLottoService;
 
 @Controller
 public class SaturdayLottoController {
