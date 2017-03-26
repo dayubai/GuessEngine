@@ -433,6 +433,11 @@ public class LottoTest {
 	}*/
 
 	@Test
+	public void testBuildARModelToDB() {
+		saturdayLottoService.generateNumberPredictions("3715");
+	}
+	
+	@Test
 	public void testBuildARModel() throws IOException
 	{
 

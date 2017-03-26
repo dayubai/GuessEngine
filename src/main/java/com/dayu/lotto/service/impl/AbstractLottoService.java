@@ -23,7 +23,7 @@ public abstract class AbstractLottoService<T extends LottoTicket, R extends Lott
     protected Map<Integer, List<ARModel>> frTrainingData = new TreeMap<Integer, List<ARModel>>();
     protected Map<Integer, ARModel> frTestData = new TreeMap<Integer,ARModel>();
     
-	protected void buildForrestRandomModel()
+	protected void buildForrestRandomModel(int draw)
 	{		
 		// initial
 		Map<Integer, Queue<Double>> resultMap = new TreeMap<Integer, Queue<Double>>();
@@ -35,7 +35,7 @@ public abstract class AbstractLottoService<T extends LottoTicket, R extends Lott
 			resultMap.put(i, q);
 		}
 
-		for (R result : findLast(FR_HISTORY_SAMPLE))
+		for (R result : findLastResultsFromDraw(draw, FR_HISTORY_SAMPLE))
 		{
 			List<Integer> winningNumbers = result.getWinningNumbers();
 

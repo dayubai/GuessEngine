@@ -610,7 +610,7 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
     public void generateNumberPredictions(String drawNumber)
     {
         // build model	
-    	super.buildForrestRandomModel();
+    	super.buildForrestRandomModel(Integer.parseInt(drawNumber));
     	
     	// DB Object
     	SaturdayLottoPrediction obj = new SaturdayLottoPrediction();
@@ -694,8 +694,8 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 			SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
 			
 			singlePredictionObject.setNumber(String.valueOf(trainingNumber));
-			singlePredictionObject.setPrediction(row.getDouble(1));
-			singlePredictionObject.setProbability(row.getString(3));
+			singlePredictionObject.setPrediction(Double.parseDouble(row.get(0).toString()));
+			singlePredictionObject.setProbability(row.get(2).toString());
 	
 			predictionObjects.add(singlePredictionObject);
 			
