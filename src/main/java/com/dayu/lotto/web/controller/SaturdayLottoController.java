@@ -61,9 +61,9 @@ public class SaturdayLottoController {
 	}
 	
 	@RequestMapping(value="/saturdayLotto/predict", method=RequestMethod.GET)
-	public ModelAndView saturdayPredict()
+	public ModelAndView saturdayPredict(@RequestParam("draws") String draws)
 	{
-		saturdayLottoService.generateNumberPredictions();
+		saturdayLottoService.generateNumberPredictions(draws);
 		return saturdayLotto();
 	}
 }

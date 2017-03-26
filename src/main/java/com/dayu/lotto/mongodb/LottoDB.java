@@ -62,13 +62,19 @@ public class LottoDB implements LottoDAO {
 	
 	public <T extends LottoNumberPrediction> String saveOrUpdateNumberPrediction(T lottoNumberPrediction) {
 		mongoTemplate.save(lottoNumberPrediction);
-		return lottoNumberPrediction.getId();
+		return lottoNumberPrediction.getDrawNumber();
 	}
 	
 	public <T extends Object> void dropDatabase(Class<T> c)
 	{
 		if (mongoTemplate.collectionExists(c))
     		mongoTemplate.dropCollection(c);
+	}
+
+	@Override
+	public <T extends LottoResult> List<T> findLastResultsFromDraw(int draw,
+			int limit, Class<T> entityClass) {
+		return mongoTemplate.find(Query.query(Criteria.where("_id").lt(draw)).with(new Sort(Sort.Direction.DESC, "_id")).limit(limit), entityClass);
 	}
 
 }

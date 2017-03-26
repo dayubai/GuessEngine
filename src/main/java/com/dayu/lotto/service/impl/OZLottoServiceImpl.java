@@ -356,7 +356,7 @@ public class OZLottoServiceImpl implements OZLottoService {
 	}
 
 	@Override
-	public void generateNumberPredictions() {
+	public void generateNumberPredictions(String drawNumber) {
 		// TODO Auto-generated method stub
 		
 	}

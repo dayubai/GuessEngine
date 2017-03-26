@@ -2,8 +2,6 @@ package com.dayu.lotto.entity;
 
 import java.util.List;
 
-import com.dayu.lotto.entity.SaturdayLottoTicket.Result;
-
 public class SaturdayLottoPrediction extends LottoNumberPrediction {
     private List<SinglePredictionObject> predictionObjects;
 
@@ -29,19 +27,19 @@ public class SaturdayLottoPrediction extends LottoNumberPrediction {
 
 	public class SinglePredictionObject 
     {
-    	private String numbers;
-    	private Object probability;
+    	private String number;
+    	private String probability;
     	private double prediction;
-		public String getNumbers() {
-			return numbers;
+		public String getNumber() {
+			return number;
 		}
-		public void setNumbers(String numbers) {
-			this.numbers = numbers;
+		public void setNumber(String number) {
+			this.number = number;
 		}
-		public Object getProbability() {
+		public String getProbability() {
 			return probability;
 		}
-		public void setProbability(Object probability) {
+		public void setProbability(String probability) {
 			this.probability = probability;
 		}
 		public double getPrediction() {

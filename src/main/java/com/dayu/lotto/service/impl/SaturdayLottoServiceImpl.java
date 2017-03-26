@@ -443,7 +443,7 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 		return cv.fit(training);
 	}
 
-	@Override
+	/*@Override
 	public void generateNumberPredictions() {
 		
 		SparkSession spark = SparkSession
@@ -495,9 +495,9 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 		processPrdiction(spark, model);
 		
 		spark.stop();
-	}
+	}*/
 	
-	private void processPrdiction(SparkSession spark, CrossValidatorModel model)
+	/*private void processPrdiction(SparkSession spark, CrossValidatorModel model)
 	{
 		// Drop SaturdayLottoPrediction collection
 		lottoDAO.dropDatabase(SaturdayLottoPrediction.class);
@@ -612,37 +612,20 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 			}
 			temp.remove(0);
 		}
-		
-		
-		// Prepare test documents, which are unlabeled.
-		/*Dataset<Row> test = spark.createDataFrame(jDocs, JavaDocument.class);
-
-		// Make predictions on test documents. cvModel uses the best model found (lrModel).
-		Dataset<Row> predictions = model.transform(test);
-		for (Row r : predictions.select("id", "text", "probability", "prediction").collectAsList()) {
-			
-			//SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
-			
-			List<Integer> toNumbers = new ArrayList<Integer>();
-			Collections.copy(temp, new ArrayList<Integer>());
-			singlePredictionObject.setNumbers(r.getString(1));
-			singlePredictionObject.setPrediction(r.getDouble(3));
-			singlePredictionObject.setProbability(r.get(2));
-	
-			
-			predictionObjects.add(singlePredictionObject);
-		}
-		
-		//obj.setPredictionObjects(predictionObjects);
-		lottoDAO.saveOrUpdateNumberPrediction(obj);*/
-	}
+	}*/
 	
 	
-	
-    public void runForrestRandomPrediction()
+	@Override
+    public void generateNumberPredictions(String drawNumber)
     {
         // build model	
     	super.buildForrestRandomModel();
+    	
+    	// DB Object
+    	SaturdayLottoPrediction obj = new SaturdayLottoPrediction();
+    	obj.setDrawNumber(drawNumber);
+    	List<SinglePredictionObject> predictionObjects = new ArrayList<SinglePredictionObject>();
+    	
     	
     	/**
 		 **  ML Model
@@ -650,7 +633,7 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 		//Build RandomForrest Model
 		SparkSession spark = SparkSession
 				.builder()
-				.appName("RandomForestClassifierExample")
+				.appName("SaturdayLottoRandomForestClassifierExample")
 				.getOrCreate();
 
 		
@@ -713,7 +696,19 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 			// Make predictions.
 			Dataset<Row> predictions = model.transform(test);
 
-			// Select example rows to display.
+			Row row = predictions.select("predictedLabel", "label","probability", "features").first();
+			
+			// write predictions to database
+			
+			SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
+			
+			singlePredictionObject.setNumber(String.valueOf(trainingNumber));
+			singlePredictionObject.setPrediction(row.getDouble(1));
+			singlePredictionObject.setProbability(row.getString(3));
+	
+			predictionObjects.add(singlePredictionObject);
+			
+			
 /*			Row row = predictions.select("predictedLabel", "label","probability", "features").first();
  
 			pw.println(trainingNumber + ", " + row.get(0) + " " + row.get(2));
@@ -721,5 +716,8 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 
 		}
 		spark.stop();
+		
+		obj.setPredictionObjects(predictionObjects);
+		lottoDAO.saveOrUpdateNumberPrediction(obj);
     }
 }

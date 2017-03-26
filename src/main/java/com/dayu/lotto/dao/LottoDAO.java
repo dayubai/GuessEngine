@@ -27,4 +27,6 @@ public interface LottoDAO {
 	<T extends LottoNumberPrediction> String saveOrUpdateNumberPrediction(T lottoNumberPrediction);
 	
 	<T extends Object> void dropDatabase(Class<T> c);
+	
+	<T extends LottoResult> List<T> findLastResultsFromDraw(int draw, int limit, Class<T> entityClass);
 }

@@ -9,8 +9,10 @@ import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
+import com.dayu.lotto.entity.SaturdayLottoResult;
+import com.dayu.lotto.entity.SaturdayLottoTicket;
 
-public interface LottoService  {
+public interface LottoService<T, R>  {
     
 	void uploadResults(InputStream is) throws Exception;
 	
@@ -28,6 +30,16 @@ public interface LottoService  {
     
     List<JavaLabeledDocument> buildTrainingData(int max);
     
-    void generateNumberPredictions ();
+    void generateNumberPredictions (String drawNumber);
+    
+    
+    // new method
+    List<T> findTicketsByDraw(int draw);
+    
+    List<T> findAllTickets();
+    
+    List<R> findLast(int limit);
+    
+    R findResultByDraw(int draw);
     
 }

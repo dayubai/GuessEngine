@@ -272,7 +272,7 @@ public class PowerBallServiceImpl implements PowerBallService {
 
 
 	@Override
-	public void generateNumberPredictions() {
+	public void generateNumberPredictions(String drawNumber) {
 		// TODO Auto-generated method stub
 		
 	}
