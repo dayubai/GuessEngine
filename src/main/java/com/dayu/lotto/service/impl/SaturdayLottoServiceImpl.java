@@ -7,39 +7,24 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.spark.ml.Pipeline;
-import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.LogisticRegression;
-import org.apache.spark.ml.classification.RandomForestClassifier;
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
 import org.apache.spark.ml.feature.HashingTF;
-import org.apache.spark.ml.feature.IndexToString;
-import org.apache.spark.ml.feature.StringIndexer;
-import org.apache.spark.ml.feature.StringIndexerModel;
 import org.apache.spark.ml.feature.Tokenizer;
-import org.apache.spark.ml.feature.VectorIndexer;
-import org.apache.spark.ml.feature.VectorIndexerModel;
-import org.apache.spark.ml.linalg.VectorUDT;
-import org.apache.spark.ml.linalg.Vectors;
 import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,11 +33,10 @@ import org.springframework.stereotype.Service;
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
-import com.dayu.lotto.entity.ARModel;
 import com.dayu.lotto.entity.Division;
+import com.dayu.lotto.entity.LottoNumberPrediction.SinglePredictionObject;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.entity.SaturdayLottoPrediction;
-import com.dayu.lotto.entity.SaturdayLottoPrediction.SinglePredictionObject;
 import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
 
@@ -610,106 +594,24 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
     public void generateNumberPredictions(String drawNumber)
     {
         // build model	
-    	super.buildForrestRandomModel(Integer.parseInt(drawNumber));
+    	buildForrestRandomModel(Integer.parseInt(drawNumber));
     	
     	// DB Object
-    	SaturdayLottoPrediction obj = new SaturdayLottoPrediction();
-    	obj.setDrawNumber(drawNumber);
-    	List<SinglePredictionObject> predictionObjects = new ArrayList<SinglePredictionObject>();
+    	SaturdayLottoPrediction saturdayLottoPrediction = new SaturdayLottoPrediction();
+    	saturdayLottoPrediction.setDrawNumber(drawNumber);
     	
-    	
-    	/**
-		 **  ML Model
-		 */
+
 		//Build RandomForrest Model
 		SparkSession spark = SparkSession
 				.builder()
 				.appName("SaturdayLottoRandomForestClassifierExample")
 				.getOrCreate();
 
-		
-		
-		for (int trainingNumber = 1; trainingNumber <=pool(); trainingNumber++) 
-		{
-
-
-			// Create some vector data; also works for sparse vectors
-			List<Row> rows = new ArrayList<Row>();
-			for (ARModel arModel : super.frTrainingData.get(trainingNumber))
-			{	
-				rows.add(RowFactory.create(arModel.getLabel(), Vectors.dense(ArrayUtils.toPrimitive( arModel.getTrainingSet()))));
-			}
-
-			List<StructField> fields = new ArrayList<>();
-			fields.add(DataTypes.createStructField("label", DataTypes.DoubleType, false));
-			fields.add(DataTypes.createStructField("features", new VectorUDT(), false));
-
-			StructType schema = DataTypes.createStructType(fields);
-
-			Dataset<Row> data = spark.createDataFrame(rows, schema);
-
-			Dataset<Row> test = spark.createDataFrame(Arrays.asList(RowFactory.create(super.frTestData.get(trainingNumber).getLabel(), Vectors.dense(ArrayUtils.toPrimitive( super.frTestData.get(trainingNumber).getTrainingSet())))),schema);
-
-			// Index labels, adding metadata to the label column.
-			// Fit on whole dataset to include all labels in index.
-			StringIndexerModel labelIndexer = new StringIndexer()
-			.setInputCol("label")
-			.setOutputCol("indexedLabel")
-			.fit(data);
-
-			// Automatically identify categorical features, and index them.
-			// Set maxCategories so features with > 4 distinct values are treated as continuous.
-
-			VectorIndexerModel featureIndexer = new VectorIndexer()
-			.setInputCol("features")
-			.setOutputCol("indexedFeatures")
-			.setMaxCategories(3)
-			.fit(data);
-
-			// Train a RandomForest model.
-			RandomForestClassifier rf = new RandomForestClassifier()
-			.setLabelCol("indexedLabel")
-			.setFeaturesCol("indexedFeatures");
-
-			// Convert indexed labels back to original labels.
-			IndexToString labelConverter = new IndexToString()
-			.setInputCol("prediction")
-			.setOutputCol("predictedLabel")
-			.setLabels(labelIndexer.labels());
-
-			// Chain indexers and forest in a Pipeline
-			Pipeline pipeline = new Pipeline()
-			.setStages(new PipelineStage[] {labelIndexer, featureIndexer, rf, labelConverter});
-
-			// Train model. This also runs the indexers.
-			PipelineModel model = pipeline.fit(data);
-
-			// Make predictions.
-			Dataset<Row> predictions = model.transform(test);
-
-			Row row = predictions.select("predictedLabel", "label","probability", "features").first();
-			
-			// write predictions to database
-			
-			SinglePredictionObject singlePredictionObject = obj.newSinglePredictionObject();
-			
-			singlePredictionObject.setNumber(String.valueOf(trainingNumber));
-			singlePredictionObject.setPrediction(Double.parseDouble(row.get(0).toString()));
-			singlePredictionObject.setProbability(row.get(2).toString());
-	
-			predictionObjects.add(singlePredictionObject);
-			
-			
-/*			Row row = predictions.select("predictedLabel", "label","probability", "features").first();
- 
-			pw.println(trainingNumber + ", " + row.get(0) + " " + row.get(2));
-			pw.flush();*/
-
-		}
+		List<SinglePredictionObject> predictionObjects = forrestRandomPredict(spark, saturdayLottoPrediction);
 		spark.stop();
 		
-		obj.setPredictionObjects(predictionObjects);
-		lottoDAO.saveOrUpdateNumberPrediction(obj);
+		saturdayLottoPrediction.setPredictionObjects(predictionObjects);
+		lottoDAO.saveOrUpdateNumberPrediction(saturdayLottoPrediction);
     }
 
 	@Override

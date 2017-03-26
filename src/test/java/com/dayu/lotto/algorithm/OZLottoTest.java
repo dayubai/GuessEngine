@@ -351,4 +351,9 @@ public class OZLottoTest {
 		
 		return cvModel;
 	}
+	
+	@Test
+	public void testBuildARModelToDB() {
+		ozLottoService.generateNumberPredictions("1196");
+	}
 }
