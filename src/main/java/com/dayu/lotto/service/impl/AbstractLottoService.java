@@ -7,11 +7,14 @@ import java.util.Queue;
 import java.util.TreeMap;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import org.springframework.stereotype.Component;
+
 import com.dayu.lotto.entity.ARModel;
 import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.service.LottoService;
 
+@Component
 public abstract class AbstractLottoService<T extends LottoTicket, R extends LottoResult> implements LottoService<T, R>
 {
 	private static final int FR_HISTORY_FEATURES = 5;
@@ -19,8 +22,6 @@ public abstract class AbstractLottoService<T extends LottoTicket, R extends Lott
     
     protected Map<Integer, List<ARModel>> frTrainingData = new TreeMap<Integer, List<ARModel>>();
     protected Map<Integer, ARModel> frTestData = new TreeMap<Integer,ARModel>();
-    
-    public abstract List<R> findLast(int limit);
     
 	protected void buildForrestRandomModel()
 	{		

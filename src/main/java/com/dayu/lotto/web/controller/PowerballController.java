@@ -12,12 +12,17 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.dayu.lotto.algorithm.WeightedSelector;
+import com.dayu.lotto.entity.PowerBallResult;
+import com.dayu.lotto.entity.PowerBallTicket;
+import com.dayu.lotto.entity.SaturdayLottoResult;
+import com.dayu.lotto.entity.SaturdayLottoTicket;
+import com.dayu.lotto.service.LottoService;
 import com.dayu.lotto.service.PowerBallService;
 
 @Controller
 public class PowerballController {
 	@Autowired
-	private PowerBallService powerBallService;
+	private LottoService<PowerBallTicket, PowerBallResult> powerBallService;
 	
 	@RequestMapping(value="/powerball", method=RequestMethod.GET)
 	public ModelAndView powerball()

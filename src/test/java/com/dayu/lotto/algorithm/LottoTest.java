@@ -82,14 +82,14 @@ import com.dayu.lotto.entity.ARModel;
 import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
-import com.dayu.lotto.service.SaturdayLottoService;
+import com.dayu.lotto.service.LottoService;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {TestAppConfig.class})
 
 public class LottoTest {
 	@Autowired
-	private SaturdayLottoService saturdayLottoService;
+	private LottoService<SaturdayLottoTicket, SaturdayLottoResult> saturdayLottoService;
 
 	@Autowired
 	private LottoDAO  saturdayLottoDAO;
@@ -443,7 +443,7 @@ public class LottoTest {
 		
 		
 		int historyCapacity = 5;
-		List<SaturdayLottoResult> results = saturdayLottoService.findLast(50);
+		List<SaturdayLottoResult> results = saturdayLottoService.findLastResultsFromDraw(3715, 50);
 		Map<Integer, List<ARModel>> arModels = new TreeMap<Integer, List<ARModel>>();
 
 		Map<Integer, Queue<Double>> resultMap = new TreeMap<Integer, Queue<Double>>();

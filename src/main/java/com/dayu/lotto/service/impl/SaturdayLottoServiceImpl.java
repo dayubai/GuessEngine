@@ -9,13 +9,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.TreeMap;
-import java.util.concurrent.ArrayBlockingQueue;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.spark.ml.Pipeline;
@@ -37,7 +33,6 @@ import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
-import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -50,23 +45,19 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.dayu.lotto.algorithm.JavaDocument;
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.ARModel;
 import com.dayu.lotto.entity.Division;
-import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
-import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoPrediction;
 import com.dayu.lotto.entity.SaturdayLottoPrediction.SinglePredictionObject;
 import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
-import com.dayu.lotto.service.SaturdayLottoService;
 
 @Service
-public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLottoResult> implements SaturdayLottoService {
+public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLottoTicket, SaturdayLottoResult> {
 
 	private static Logger log = LoggerFactory.getLogger(SaturdayLottoServiceImpl.class);
     private static final int SAMPLE = 15;
@@ -720,4 +711,9 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 		obj.setPredictionObjects(predictionObjects);
 		lottoDAO.saveOrUpdateNumberPrediction(obj);
     }
+
+	@Override
+	public List<SaturdayLottoResult> findLastResultsFromDraw(int draw, int limit) {
+		return lottoDAO.findLastResultsFromDraw(draw, limit, SaturdayLottoResult.class);
+	}
 }

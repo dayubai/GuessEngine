@@ -12,12 +12,17 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.dayu.lotto.algorithm.WeightedSelector;
+import com.dayu.lotto.entity.OZLottoResult;
+import com.dayu.lotto.entity.OZLottoTicket;
+import com.dayu.lotto.entity.SaturdayLottoResult;
+import com.dayu.lotto.entity.SaturdayLottoTicket;
+import com.dayu.lotto.service.LottoService;
 import com.dayu.lotto.service.OZLottoService;
 
 @Controller
 public class OZLottoController {
 	@Autowired
-	private OZLottoService ozLottoService;
+	private LottoService<OZLottoTicket, OZLottoResult> ozLottoService;
 	
 	@RequestMapping(value="/ozLotto", method=RequestMethod.GET)
 	public ModelAndView ozLotto()

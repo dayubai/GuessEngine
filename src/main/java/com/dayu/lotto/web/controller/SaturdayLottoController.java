@@ -12,12 +12,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.dayu.lotto.algorithm.WeightedSelector;
+import com.dayu.lotto.entity.SaturdayLottoResult;
+import com.dayu.lotto.entity.SaturdayLottoTicket;
+import com.dayu.lotto.service.LottoService;
 import com.dayu.lotto.service.SaturdayLottoService;
 
 @Controller
 public class SaturdayLottoController {
 	@Autowired
-	private SaturdayLottoService saturdayLottoService;
+	private LottoService<SaturdayLottoTicket, SaturdayLottoResult> saturdayLottoService;
 	
 	@RequestMapping(value="/saturdayLotto", method=RequestMethod.GET)
 	public ModelAndView saturdayLotto()

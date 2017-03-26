@@ -42,4 +42,6 @@ public interface LottoService<T, R>  {
     
     R findResultByDraw(int draw);
     
+    List<R> findLastResultsFromDraw(int draw,int limit);
+    
 }

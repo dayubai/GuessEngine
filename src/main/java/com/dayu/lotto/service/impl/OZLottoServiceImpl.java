@@ -35,15 +35,12 @@ import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
-import com.dayu.lotto.entity.LottoNumberPrediction;
-import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.OZLottoTicket;
-import com.dayu.lotto.service.OZLottoService;
 
 @Service
-public class OZLottoServiceImpl implements OZLottoService {
+public class OZLottoServiceImpl extends AbstractLottoService<OZLottoTicket, OZLottoResult> {
 
 	@Autowired
 	private LottoDAO lottoDAO;
@@ -360,5 +357,12 @@ public class OZLottoServiceImpl implements OZLottoService {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public List<OZLottoResult> findLastResultsFromDraw(int draw, int limit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }

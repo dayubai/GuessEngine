@@ -29,7 +29,7 @@ import com.dayu.lotto.entity.PowerBallTicket;
 import com.dayu.lotto.service.PowerBallService;
 
 @Service
-public class PowerBallServiceImpl implements PowerBallService {
+public class PowerBallServiceImpl extends AbstractLottoService<PowerBallTicket, PowerBallResult> {
 
 	@Autowired
 	private LottoDAO lottoDAO;
@@ -276,6 +276,13 @@ public class PowerBallServiceImpl implements PowerBallService {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public List<PowerBallResult> findLastResultsFromDraw(int draw, int limit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	
 
