@@ -22,6 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.dayu.lotto.TestAppConfig;
+import com.dayu.lotto.entity.PowerBallPrediction;
 import com.dayu.lotto.entity.PowerBallResult;
 import com.dayu.lotto.entity.PowerBallTicket;
 import com.dayu.lotto.service.LottoService;
@@ -33,7 +34,7 @@ public class PowerballTest {
 	private MongoTemplate mongoTemplate;
 	
 	@Autowired
-	private LottoService<PowerBallTicket, PowerBallResult> powerBallService;
+	private LottoService<PowerBallTicket, PowerBallResult, PowerBallPrediction> powerBallService;
 	
 	private static Logger log = LoggerFactory.getLogger(PowerballTest.class);
 	

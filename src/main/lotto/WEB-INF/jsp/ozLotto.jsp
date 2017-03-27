@@ -28,7 +28,7 @@
 		<c:if test="${not empty tickets}">
 			<c:forEach var="ticket" items="${tickets}">
 				<tr>
-					<td>Ticket: <a href="/saturdayLotto/ticket/${ticket.id}">${ticket.draw}</a></td>
+					<td>Ticket: <a href="/ozLotto/ticket/${ticket.id}">${ticket.draw}</a></td>
 				</tr>
 			</c:forEach>
 		</c:if>

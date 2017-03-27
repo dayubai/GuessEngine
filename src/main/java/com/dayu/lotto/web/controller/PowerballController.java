@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.dayu.lotto.algorithm.WeightedSelector;
+import com.dayu.lotto.entity.PowerBallPrediction;
 import com.dayu.lotto.entity.PowerBallResult;
 import com.dayu.lotto.entity.PowerBallTicket;
 import com.dayu.lotto.entity.SaturdayLottoResult;
@@ -21,7 +22,7 @@ import com.dayu.lotto.service.LottoService;
 @Controller
 public class PowerballController {
 	@Autowired
-	private LottoService<PowerBallTicket, PowerBallResult> powerBallService;
+	private LottoService<PowerBallTicket, PowerBallResult, PowerBallPrediction> powerBallService;
 	
 	@RequestMapping(value="/powerball", method=RequestMethod.GET)
 	public ModelAndView powerball()

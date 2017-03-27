@@ -80,6 +80,7 @@ import com.dayu.lotto.TestAppConfig;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.ARModel;
 import com.dayu.lotto.entity.Division;
+import com.dayu.lotto.entity.SaturdayLottoPrediction;
 import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
 import com.dayu.lotto.service.LottoService;
@@ -89,7 +90,7 @@ import com.dayu.lotto.service.LottoService;
 
 public class LottoTest {
 	@Autowired
-	private LottoService<SaturdayLottoTicket, SaturdayLottoResult> saturdayLottoService;
+	private LottoService<SaturdayLottoTicket, SaturdayLottoResult, SaturdayLottoPrediction> saturdayLottoService;
 
 	@Autowired
 	private LottoDAO  saturdayLottoDAO;

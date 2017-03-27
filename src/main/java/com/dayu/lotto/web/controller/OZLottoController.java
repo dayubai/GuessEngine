@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.dayu.lotto.algorithm.WeightedSelector;
+import com.dayu.lotto.entity.OZLottoPrediction;
 import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.OZLottoTicket;
 import com.dayu.lotto.service.LottoService;
@@ -19,7 +20,7 @@ import com.dayu.lotto.service.LottoService;
 @Controller
 public class OZLottoController {
 	@Autowired
-	private LottoService<OZLottoTicket, OZLottoResult> ozLottoService;
+	private LottoService<OZLottoTicket, OZLottoResult, OZLottoPrediction> ozLottoService;
 	
 	@RequestMapping(value="/ozLotto", method=RequestMethod.GET)
 	public ModelAndView ozLotto()
@@ -65,15 +66,23 @@ public class OZLottoController {
 	@RequestMapping(value="/ozLotto/rfpredict/run", method=RequestMethod.POST)
 	public ModelAndView ozLottoRfPredict(@RequestParam("draw") String draw)
 	{
-		ModelAndView modelAndView = new ModelAndView("ozLotto/rfpredict/draw");	
 		ozLottoService.generateNumberPredictions(draw);
+		return ozLottoRfPredictDetailView(draw);
+	}
+	
+	@RequestMapping(value="/ozLotto/rfpredict/draw/{draw}", method=RequestMethod.GET)
+	public ModelAndView ozLottoRfPredictDetailView(@PathVariable("draw") String draw)
+	{
+		ModelAndView modelAndView = new ModelAndView("rfpredict/detail/ozLottoPredictionDetail");
+		modelAndView.addObject("prediction", ozLottoService.findAllForestRandomPredictions());
     	return modelAndView;
 	}
 	
 	@RequestMapping(value="/ozLotto/rfpredict", method=RequestMethod.GET)
-	public ModelAndView ozLottoRfPredictView(@RequestParam("draw") String draw)
+	public ModelAndView ozLottoRfPredictView()
 	{
-		ModelAndView modelAndView = new ModelAndView("ozLotto/rfpredict");	
+		ModelAndView modelAndView = new ModelAndView("rfpredict/ozLottoPrediction");
+		modelAndView.addObject("predictions", ozLottoService.findAllForestRandomPredictions());
     	return modelAndView;
 	}
 }

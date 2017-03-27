@@ -15,7 +15,6 @@ import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoResult;
 import com.dayu.lotto.entity.LottoTicket;
-import com.dayu.lotto.entity.SaturdayLottoResult;
 
 @Component
 public class LottoDB implements LottoDAO {
@@ -76,5 +75,17 @@ public class LottoDB implements LottoDAO {
 			int limit, Class<T> entityClass) {
 		return mongoTemplate.find(Query.query(Criteria.where("_id").lt(draw)).with(new Sort(Sort.Direction.DESC, "_id")).limit(limit), entityClass);
 	}
+
+	@Override
+	public <T extends LottoNumberPrediction> List<T> findAllForestRandomPrediction(Class<T> entityClass) {
+		return mongoTemplate.find(new Query().with(new Sort(Sort.Direction.DESC, "_id")), entityClass);
+	}
+
+	@Override
+	public <T extends LottoNumberPrediction> T findAllForestRandomPredictionByDraw(int draw, Class<T> entityClass) {
+		return mongoTemplate.findOne(Query.query(Criteria.where("_id").is(draw)), entityClass);
+	}
+
+	
 
 }

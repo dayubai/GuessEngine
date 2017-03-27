@@ -37,7 +37,7 @@ import com.dayu.lotto.entity.LottoTicket;
 import com.dayu.lotto.service.LottoService;
 
 @Component
-public abstract class AbstractLottoService<T extends LottoTicket, R extends LottoResult> implements LottoService<T, R>
+public abstract class AbstractLottoService<T extends LottoTicket, R extends LottoResult, P extends LottoNumberPrediction> implements LottoService<T, R, P>
 {
 	private static final int FR_HISTORY_FEATURES = 5;
     private static final int FR_HISTORY_SAMPLE = 50;

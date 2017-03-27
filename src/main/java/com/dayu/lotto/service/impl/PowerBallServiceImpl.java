@@ -22,11 +22,12 @@ import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
 import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.LottoTicket;
+import com.dayu.lotto.entity.PowerBallPrediction;
 import com.dayu.lotto.entity.PowerBallResult;
 import com.dayu.lotto.entity.PowerBallTicket;
 
 @Service
-public class PowerBallServiceImpl extends AbstractLottoService<PowerBallTicket, PowerBallResult> {
+public class PowerBallServiceImpl extends AbstractLottoService<PowerBallTicket, PowerBallResult, PowerBallPrediction> {
 
 	@Autowired
 	private LottoDAO lottoDAO;
@@ -276,6 +277,18 @@ public class PowerBallServiceImpl extends AbstractLottoService<PowerBallTicket, 
 
 	@Override
 	public List<PowerBallResult> findLastResultsFromDraw(int draw, int limit) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<PowerBallPrediction> findAllForestRandomPredictions() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PowerBallPrediction findForestRandomPredictionByDraw(int draw) {
 		// TODO Auto-generated method stub
 		return null;
 	}

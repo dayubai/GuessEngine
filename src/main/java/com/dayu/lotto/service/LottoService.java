@@ -3,16 +3,11 @@ package com.dayu.lotto.service;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.spark.mllib.fpm.FPGrowth.FreqItemset;
-
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
-import com.dayu.lotto.entity.LottoNumberPrediction;
 import com.dayu.lotto.entity.LottoTicket;
-import com.dayu.lotto.entity.SaturdayLottoResult;
-import com.dayu.lotto.entity.SaturdayLottoTicket;
 
-public interface LottoService<T, R>  {
+public interface LottoService<T, R, P>  {
     
 	void uploadResults(InputStream is) throws Exception;
 	
@@ -44,4 +39,7 @@ public interface LottoService<T, R>  {
     
     List<R> findLastResultsFromDraw(int draw,int limit);
     
+    List<P> findAllForestRandomPredictions();
+    
+    P findForestRandomPredictionByDraw(int draw);
 }

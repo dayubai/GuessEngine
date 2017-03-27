@@ -7,40 +7,25 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.ml.Pipeline;
-import org.apache.spark.ml.PipelineModel;
 import org.apache.spark.ml.PipelineStage;
 import org.apache.spark.ml.classification.LogisticRegression;
-import org.apache.spark.ml.classification.RandomForestClassifier;
 import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator;
 import org.apache.spark.ml.feature.HashingTF;
-import org.apache.spark.ml.feature.IndexToString;
-import org.apache.spark.ml.feature.StringIndexer;
-import org.apache.spark.ml.feature.StringIndexerModel;
 import org.apache.spark.ml.feature.Tokenizer;
-import org.apache.spark.ml.feature.VectorIndexer;
-import org.apache.spark.ml.feature.VectorIndexerModel;
-import org.apache.spark.ml.linalg.VectorUDT;
-import org.apache.spark.ml.linalg.Vectors;
 import org.apache.spark.ml.param.ParamMap;
 import org.apache.spark.ml.tuning.CrossValidator;
 import org.apache.spark.ml.tuning.CrossValidatorModel;
 import org.apache.spark.ml.tuning.ParamGridBuilder;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +34,6 @@ import org.springframework.stereotype.Service;
 import com.dayu.lotto.algorithm.JavaLabeledDocument;
 import com.dayu.lotto.algorithm.WeightedSelector;
 import com.dayu.lotto.dao.LottoDAO;
-import com.dayu.lotto.entity.ARModel;
 import com.dayu.lotto.entity.Division;
 import com.dayu.lotto.entity.LottoNumberPrediction.SinglePredictionObject;
 import com.dayu.lotto.entity.LottoTicket;
@@ -58,7 +42,7 @@ import com.dayu.lotto.entity.OZLottoResult;
 import com.dayu.lotto.entity.OZLottoTicket;
 
 @Service
-public class OZLottoServiceImpl extends AbstractLottoService<OZLottoTicket, OZLottoResult> {
+public class OZLottoServiceImpl extends AbstractLottoService<OZLottoTicket, OZLottoResult, OZLottoPrediction> {
 
 	@Autowired
 	private LottoDAO lottoDAO;
@@ -397,5 +381,15 @@ public class OZLottoServiceImpl extends AbstractLottoService<OZLottoTicket, OZLo
 	@Override
 	public List<OZLottoResult> findLastResultsFromDraw(int draw, int limit) {
 		return lottoDAO.findLastResultsFromDraw(draw, limit, OZLottoResult.class);
+	}
+
+	@Override
+	public List<OZLottoPrediction> findAllForestRandomPredictions() {
+		return lottoDAO.findAllForestRandomPrediction(OZLottoPrediction.class);
+	}
+
+	@Override
+	public OZLottoPrediction findForestRandomPredictionByDraw(int draw) {
+		return lottoDAO.findAllForestRandomPredictionByDraw(draw, OZLottoPrediction.class);
 	}
 }

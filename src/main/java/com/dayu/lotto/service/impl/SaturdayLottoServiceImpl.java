@@ -41,7 +41,7 @@ import com.dayu.lotto.entity.SaturdayLottoResult;
 import com.dayu.lotto.entity.SaturdayLottoTicket;
 
 @Service
-public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLottoTicket, SaturdayLottoResult> {
+public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLottoTicket, SaturdayLottoResult, SaturdayLottoPrediction> {
 
 	private static Logger log = LoggerFactory.getLogger(SaturdayLottoServiceImpl.class);
     private static final int SAMPLE = 15;
@@ -617,5 +617,15 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 	@Override
 	public List<SaturdayLottoResult> findLastResultsFromDraw(int draw, int limit) {
 		return lottoDAO.findLastResultsFromDraw(draw, limit, SaturdayLottoResult.class);
+	}
+
+	@Override
+	public List<SaturdayLottoPrediction> findAllForestRandomPredictions() {
+		return lottoDAO.findAllForestRandomPrediction(SaturdayLottoPrediction.class);
+	}
+
+	@Override
+	public SaturdayLottoPrediction findForestRandomPredictionByDraw(int draw) {
+		return lottoDAO.findAllForestRandomPredictionByDraw(draw, SaturdayLottoPrediction.class);
 	}
 }

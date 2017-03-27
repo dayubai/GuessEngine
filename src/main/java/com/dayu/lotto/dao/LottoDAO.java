@@ -29,4 +29,8 @@ public interface LottoDAO {
 	<T extends Object> void dropDatabase(Class<T> c);
 	
 	<T extends LottoResult> List<T> findLastResultsFromDraw(int draw, int limit, Class<T> entityClass);
+	
+	<T extends LottoNumberPrediction> List<T> findAllForestRandomPrediction(Class<T> entityClass);
+	
+	<T extends LottoNumberPrediction> T findAllForestRandomPredictionByDraw(int draw, Class<T> entityClass);
 }
