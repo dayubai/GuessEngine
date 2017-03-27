@@ -32,5 +32,5 @@ public interface LottoDAO {
 	
 	<T extends LottoNumberPrediction> List<T> findAllForestRandomPrediction(Class<T> entityClass);
 	
-	<T extends LottoNumberPrediction> T findAllForestRandomPredictionByDraw(int draw, Class<T> entityClass);
+	<T extends LottoNumberPrediction> T findAllForestRandomPredictionByDraw(String draw, Class<T> entityClass);
 }

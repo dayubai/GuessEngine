@@ -74,7 +74,7 @@ public class OZLottoController {
 	public ModelAndView ozLottoRfPredictDetailView(@PathVariable("draw") String draw)
 	{
 		ModelAndView modelAndView = new ModelAndView("rfpredict/detail/ozLottoPredictionDetail");
-		modelAndView.addObject("prediction", ozLottoService.findAllForestRandomPredictions());
+		modelAndView.addObject("prediction", ozLottoService.findForestRandomPredictionByDraw(Integer.parseInt(draw)));
     	return modelAndView;
 	}
 	

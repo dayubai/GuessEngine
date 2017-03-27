@@ -354,7 +354,15 @@ public class OZLottoTest {
 	}
 	
 	@Test
+	public void testDB() {
+		for (OZLottoResult o: ozLottoService.findLastResultsFromDraw(1190, 10))
+		{
+			System.out.println(o.getDrawNumber());
+		}
+	}
+	
+	@Test
 	public void testBuildARModelToDB() {
-		ozLottoService.generateNumberPredictions("1196");
+		ozLottoService.generateNumberPredictions("1197");
 	}
 }

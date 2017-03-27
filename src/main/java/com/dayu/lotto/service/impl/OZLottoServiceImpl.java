@@ -372,7 +372,7 @@ public class OZLottoServiceImpl extends AbstractLottoService<OZLottoTicket, OZLo
 
 		List<SinglePredictionObject> predictionObjects = forrestRandomPredict(spark, ozLottoPrediction);
 		
-		spark.stop();
+		//spark.stop();
 		
 		ozLottoPrediction.setPredictionObjects(predictionObjects);
 		lottoDAO.saveOrUpdateNumberPrediction(ozLottoPrediction);
@@ -390,6 +390,6 @@ public class OZLottoServiceImpl extends AbstractLottoService<OZLottoTicket, OZLo
 
 	@Override
 	public OZLottoPrediction findForestRandomPredictionByDraw(int draw) {
-		return lottoDAO.findAllForestRandomPredictionByDraw(draw, OZLottoPrediction.class);
+		return lottoDAO.findAllForestRandomPredictionByDraw(String.valueOf(draw), OZLottoPrediction.class);
 	}
 }

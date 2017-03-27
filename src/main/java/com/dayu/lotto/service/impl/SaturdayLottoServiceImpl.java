@@ -608,7 +608,7 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 				.getOrCreate();
 
 		List<SinglePredictionObject> predictionObjects = forrestRandomPredict(spark, saturdayLottoPrediction);
-		spark.stop();
+		//spark.stop();
 		
 		saturdayLottoPrediction.setPredictionObjects(predictionObjects);
 		lottoDAO.saveOrUpdateNumberPrediction(saturdayLottoPrediction);
@@ -626,6 +626,6 @@ public class SaturdayLottoServiceImpl extends AbstractLottoService<SaturdayLotto
 
 	@Override
 	public SaturdayLottoPrediction findForestRandomPredictionByDraw(int draw) {
-		return lottoDAO.findAllForestRandomPredictionByDraw(draw, SaturdayLottoPrediction.class);
+		return lottoDAO.findAllForestRandomPredictionByDraw(String.valueOf(draw), SaturdayLottoPrediction.class);
 	}
 }

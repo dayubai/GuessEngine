@@ -82,7 +82,7 @@ public class LottoDB implements LottoDAO {
 	}
 
 	@Override
-	public <T extends LottoNumberPrediction> T findAllForestRandomPredictionByDraw(int draw, Class<T> entityClass) {
+	public <T extends LottoNumberPrediction> T findAllForestRandomPredictionByDraw(String draw, Class<T> entityClass) {
 		return mongoTemplate.findOne(Query.query(Criteria.where("_id").is(draw)), entityClass);
 	}
 
