@@ -442,14 +442,14 @@ public class LottoTest {
 	public void testBuildARModel() throws IOException
 	{
 
-		String filename = getClass().getResource("/results").getPath() + "/ARModel.csv";
+		String filename = getClass().getResource("/results").getPath() + "/ARModel_3723.csv";
 		
 		FileWriter fw = new FileWriter(filename, true);
 		PrintWriter pw = new PrintWriter(fw);
 		
 		
 		int historyCapacity = 5;
-		List<SaturdayLottoResult> results = saturdayLottoService.findLastResultsFromDraw(3715, 50);
+		List<SaturdayLottoResult> results = saturdayLottoService.findLastResultsFromDraw(3723, 50);
 		Map<Integer, List<ARModel>> arModels = new TreeMap<Integer, List<ARModel>>();
 
 		Map<Integer, Queue<Double>> resultMap = new TreeMap<Integer, Queue<Double>>();

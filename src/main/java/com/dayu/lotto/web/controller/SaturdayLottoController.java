@@ -63,10 +63,26 @@ public class SaturdayLottoController {
     	return saturdayLotto();
 	}
 	
-	@RequestMapping(value="/saturdayLotto/predict", method=RequestMethod.GET)
-	public ModelAndView saturdayPredict(@RequestParam("draws") String draws)
+	@RequestMapping(value="/saturdayLotto/rfpredict/run", method=RequestMethod.POST)
+	public ModelAndView saturdayLottoRfPredict(@RequestParam("draw") String draw)
 	{
-		saturdayLottoService.generateNumberPredictions(draws);
-		return saturdayLotto();
+		saturdayLottoService.generateNumberPredictions(draw);
+		return saturdayLottoRfPredictDetailView(draw);
+	}
+	
+	@RequestMapping(value="/saturdayLotto/rfpredict/draw/{draw}", method=RequestMethod.GET)
+	public ModelAndView saturdayLottoRfPredictDetailView(@PathVariable("draw") String draw)
+	{
+		ModelAndView modelAndView = new ModelAndView("rfpredict/detail/saturdayLottoPredictionDetail");
+		modelAndView.addObject("prediction", saturdayLottoService.findForestRandomPredictionByDraw(Integer.parseInt(draw)));
+    	return modelAndView;
+	}
+	
+	@RequestMapping(value="/saturdayLotto/rfpredict", method=RequestMethod.GET)
+	public ModelAndView saturdayLottoRfPredictView()
+	{
+		ModelAndView modelAndView = new ModelAndView("rfpredict/saturdayLottoPrediction");
+		modelAndView.addObject("predictions", saturdayLottoService.findAllForestRandomPredictions());
+    	return modelAndView;
 	}
 }
